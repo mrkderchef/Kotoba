@@ -371,6 +371,9 @@ ul.rows li:first-child { border-top: 0; }
 .answer-bar > * { max-width: 688px; margin: 0 auto; }
 .grades { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .grades.two { grid-template-columns: 1fr 1fr; }
+.grades.three { grid-template-columns: repeat(3, 1fr); }
+.quiz-entry { display: flex; align-items: center; gap: 12px; color: var(--text); padding: 12px 14px; }
+.quiz-entry .chev { font-size: 1.6rem; color: var(--muted); }
 .grade { min-height: 58px; border-radius: 14px; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; color: #fff; }
 .grade small { font-size: .75rem; opacity: .85; }
 .grade:active { transform: scale(.96); }

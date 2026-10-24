@@ -18,7 +18,7 @@ function uid() {
 }
 
 function emptyState() {
-  return { v: 1, srs: {}, kana: {}, sections: {}, custom: {}, daily: {}, decks: {}, settings: { ...DEFAULT_SETTINGS } };
+  return { v: 1, srs: {}, kana: {}, quiz: {}, sections: {}, custom: {}, daily: {}, decks: {}, settings: { ...DEFAULT_SETTINGS } };
 }
 
 function readJSON(key, fallback) {
@@ -94,6 +94,22 @@ export function kanaStats(char) {
   return { r, w, n: r + w };
 }
 
+// ---------- Test alter Vokabeln (pro Gerät, wie Kana) ----------
+// score: 1 = gewusst, 0.5 = unsicher, 0 = falsch
+export function quizRecord(key, score) {
+  const rec = (state.quiz[key] ||= {});
+  const mine = (rec[local.deviceId] ||= { r: 0, w: 0, t: 0 });
+  mine.r += score;
+  mine.w += 1 - score;
+  mine.t = Date.now();
+}
+export function quizStats(key) {
+  const rec = state.quiz[key];
+  let r = 0, w = 0, t = 0;
+  if (rec) for (const d of Object.values(rec)) { r += d.r; w += d.w; t = Math.max(t, d.t || 0); }
+  return { r, w, n: r + w, t };
+}
+
 // ---------- Abschnitte ----------
 export function section(id) {
   return state.sections[id] || { learned: false, best: 0, passed: false };
@@ -161,6 +177,7 @@ export function merge(a, b) {
     sections,
     custom: lww(a.custom, b.custom),
     daily: perDevice(a.daily, b.daily, sum),
+    quiz: perDevice(a.quiz, b.quiz, v => v.r + v.w),
     decks: lww(a.decks, b.decks),
     settings: (b.settings?.u || 0) > (a.settings?.u || 0) ? { ...DEFAULT_SETTINGS, ...b.settings } : a.settings,
   };

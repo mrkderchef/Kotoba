@@ -110,6 +110,7 @@ export function render(root) {
           <div><b>${learnedCount('phrase')}</b><small>Phrasen</small></div>
         </div>
         ${heatmap()}
+        <a class="btn wide" href="#/quiz">🎯 Alte Vokabeln testen</a>
       </section>
 
       <p class="foot muted">${syncEnabled()

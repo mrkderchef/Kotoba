@@ -8,6 +8,7 @@ import * as vocab from './views/vocab.js';
 import * as phrases from './views/phrases.js';
 import * as review from './views/review.js';
 import * as settings from './views/settings.js';
+import * as quiz from './views/quiz.js';
 
 let root = $('#view');
 let cleanup = null;
@@ -25,6 +26,8 @@ const ROUTES = [
   [/^phrases\/([\w-]+)$/, phrases.renderSituation, 'phrases'],
   [/^review\/([\w,]+)$/, review.renderReview, null, true],
   [/^cram\/(\w+)\/([\w-]+)$/, review.renderCram, null, true],
+  [/^quiz$/, quiz.renderStart, 'vocab'],
+  [/^quiz\/run$/, quiz.renderRun, null, true],
   [/^settings$/, settings.render, 'settings'],
 ];
 

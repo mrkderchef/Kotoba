@@ -2,6 +2,7 @@ import { state, local, saveLocal, save, deckOn, setDeck, addCustom, deleteCustom
 import { VOCAB } from '../../data/vocab.js';
 import { vocabItems, kanjiItems, customItems, itemStatus, STATUS_LABEL } from '../cards.js';
 import { counts } from '../srs.js';
+import { learnedPool } from './quiz.js';
 import { toRomaji, toHiragana, hasKana } from '../romaji.js';
 import { header, esc, $, $$, go, bar, speakBtn, romajiHtml, toast } from '../ui.js';
 
@@ -98,6 +99,11 @@ export function renderOverview(root, _, q) {
         </div>
         ${!deckOn('kanji') ? '<p class="muted small-note">Kanji sind noch pausiert – aktiviere sie im Tab „Kanji“, wenn du so weit bist.</p>' : ''}
       </section>
+      <a class="card quiz-entry" href="#/quiz">
+        <span class="cat-emoji">🎯</span>
+        <span class="cat-info"><b>Alte Vokabeln testen</b><small>Zufällig aus ${learnedPool().length} gelernten Wörtern – schwache kommen öfter</small></span>
+        <span class="chev">›</span>
+      </a>
       <input class="search" id="search" type="search" placeholder="Suchen: 駅, eki, Bahnhof …" autocomplete="off" autocapitalize="off">
       <div id="results"></div>
       <div id="tabbed">

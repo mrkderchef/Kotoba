@@ -9,7 +9,7 @@ import { esc, $, go, speakBtn } from '../ui.js';
 
 const NEW_FIELD = { vocab: 'nv', custom: 'nv', kanji: 'nk', phrase: 'np' };
 
-function front(card) {
+export function front(card) {
   const { item, dir } = card;
   if (item.kind === 'kanji') {
     return `<div class="f-label">Kanji – Bedeutung?</div><div class="f-main jp kanji-front">${item.w}</div>`;
@@ -25,7 +25,7 @@ function front(card) {
     ${item.kind === 'phrase' ? speakBtn(item.k, 'big') : ''}${hint}`;
 }
 
-function back(card) {
+export function back(card) {
   const { item, dir } = card;
   const ro = state.settings.showRomaji ? `<div class="b-ro">${esc(item.ro)}</div>` : '';
   const note = item.note ? `<div class="note">${esc(item.note)}</div>` : '';
