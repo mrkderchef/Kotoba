@@ -1,5 +1,5 @@
 // Offline-Unterstützung: Netzwerk zuerst (immer aktuell), bei Funkloch aus dem Cache.
-const CACHE = 'kotoba-v1';
+const CACHE = 'kotoba-v2';
 const CORE = ['./', './index.html', './css/app.css', './js/app.js', './manifest.webmanifest'];
 
 self.addEventListener('install', e => {
@@ -31,5 +31,29 @@ self.addEventListener('fetch', e => {
       if (hit) return hit;
       return net.catch(() => Response.error());
     }
+  })());
+});
+
+// ---------- Lern-Erinnerung (Web Push) ----------
+self.addEventListener('push', e => {
+  let data = {};
+  try { data = e.data ? e.data.json() : {}; } catch { data = { body: e.data && e.data.text() }; }
+  e.waitUntil(self.registration.showNotification(data.title || 'Kotoba 言葉', {
+    body: data.body || 'Zeit für deine tägliche Wiederholung!',
+    icon: 'icons/icon-192.png',
+    badge: 'icons/icon-192.png',
+    tag: 'kotoba-reminder',
+    data: { url: data.url || './' },
+  }));
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = new URL(e.notification.data?.url || './', self.registration.scope).href;
+  e.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const w = wins.find(c => c.url.startsWith(self.registration.scope));
+    if (w) { await w.focus(); return w.navigate ? w.navigate(url).catch(() => {}) : null; }
+    return self.clients.openWindow(url);
   })());
 });

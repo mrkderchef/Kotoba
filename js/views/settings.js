@@ -3,10 +3,37 @@ import { syncNow, disconnect, syncEnabled, onSyncStatus } from '../sync.js';
 import { japaneseVoices, speak, canSpeak } from '../speech.js';
 import { toHiragana, hiraToKata } from '../romaji.js';
 import { header, esc, $, toast, go } from '../ui.js';
+import { pushSupported, isStandalone, isIOS, myPush, enablePush, disablePush, setPushHour, testLocal } from '../push.js';
 
 const num = (k, label, min, max) => `<label class="set-row"><span>${label}</span><input type="number" inputmode="numeric" min="${min}" max="${max}" data-num="${k}" value="${state.settings[k]}"></label>`;
 const sw = (k, label, sub = '') => `<label class="set-row"><span>${label}${sub ? `<small>${sub}</small>` : ''}</span><span class="switch"><input type="checkbox" data-bool="${k}" ${state.settings[k] ? 'checked' : ''}><span></span></span></label>`;
 const sel = (k, label, opts) => `<label class="set-row"><span>${label}</span><select data-sel="${k}">${Object.entries(opts).map(([v, n]) => `<option value="${v}" ${state.settings[k] === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
+
+function pushBlock() {
+  const p = myPush();
+  const others = Object.entries(state.push || {}).filter(([id, v]) => id !== local.deviceId && v.on);
+  const hours = Array.from({ length: 18 }, (_, i) => i + 6);
+  const hourSel = h => `<select id="pushHour">${hours.map(x => `<option value="${x}" ${x === h ? 'selected' : ''}>${x}:00 Uhr</option>`).join('')}</select>`;
+  const othersNote = others.length ? `<p class="muted small-note">Auch aktiv auf: ${others.map(([, v]) => `${esc(v.device || 'Gerät')} (${v.hour}:00)`).join(', ')}</p>` : '';
+  if (!pushSupported() || (isIOS() && !isStandalone())) {
+    return `<p>Erinnerungen funktionieren auf dem iPhone nur, wenn Kotoba <b>auf dem Home-Bildschirm</b> installiert ist (iOS 16.4 oder neuer). Öffne die App von dort und schalte sie hier ein.</p>${othersNote}`;
+  }
+  const needsSync = !syncEnabled() ? '<p class="warn small-note">⚠️ Richte zuerst den Sync unten ein – die Erinnerung liest deinen Fortschritt aus dem Gist.</p>' : '';
+  if (!p?.on) {
+    return `<p>Du bekommst eine Nachricht, wenn du bis zur gewählten Uhrzeit <b>noch nicht gelernt</b> hast – mit fälligen Karten und deiner Serie.</p>
+      ${needsSync}
+      <label class="set-row"><span>Uhrzeit</span>${hourSel(20)}</label>
+      <button class="btn primary wide" id="pushOn" ${syncEnabled() ? '' : 'disabled'}>🔔 Erinnerung einschalten</button>${othersNote}`;
+  }
+  return `<p class="sync-state">✅ Erinnerung aktiv auf diesem Gerät</p>
+    <label class="set-row"><span>Uhrzeit<small>Nur wenn du bis dahin noch nicht gelernt hast</small></span>${hourSel(p.hour)}</label>
+    ${needsSync}
+    <div class="row-btns">
+      <button class="btn" id="pushTest">Probe-Nachricht</button>
+      <button class="btn ghost" id="pushOff">Ausschalten</button>
+    </div>
+    <p class="muted small-note">Der Versand läuft über GitHub Actions in deinem Repo (stündlich, kann ein paar Minuten später kommen).</p>${othersNote}`;
+}
 
 function syncBlock() {
   if (!syncEnabled()) {
@@ -68,6 +95,11 @@ export function render(root) {
       </section>
 
       <section class="card">
+        <div class="card-title">🔔 Tägliche Erinnerung</div>
+        <div id="push">${pushBlock()}</div>
+      </section>
+
+      <section class="card">
         <div class="card-title">☁️ Sync iPhone ⇄ Mac</div>
         <div id="sync">${syncBlock()}</div>
       </section>
@@ -120,6 +152,29 @@ export function render(root) {
   const tv = $('#testVoice', root);
   if (tv) tv.onclick = () => speak('こんにちは。日本語を勉強しています。');
 
+  // Erinnerung
+  const pushEl = $('#push', root);
+  pushEl.addEventListener('click', async e => {
+    const id = e.target.id;
+    try {
+      if (id === 'pushOn') {
+        e.target.disabled = true;
+        await enablePush(+$('#pushHour', root).value);
+        toast('Erinnerung aktiv 🔔');
+      } else if (id === 'pushOff') {
+        await disablePush();
+        toast('Erinnerung aus');
+      } else if (id === 'pushTest') {
+        await testLocal();
+        return;
+      } else return;
+    } catch (err) { toast(err.message, 5000); }
+    pushEl.innerHTML = pushBlock();
+  });
+  pushEl.addEventListener('change', e => {
+    if (e.target.id === 'pushHour' && myPush()?.on) { setPushHour(+e.target.value); toast(`Erinnerung um ${e.target.value}:00 Uhr`); }
+  });
+
   // Sync
   const syncEl = $('#sync', root);
   syncEl.addEventListener('click', async e => {
@@ -133,6 +188,7 @@ export function render(root) {
       if (local.lastSyncError) { toast(local.lastSyncError, 4000); local.token = ''; saveLocal(); }
       else toast('Verbunden! ☁️');
       syncEl.innerHTML = syncBlock();
+      pushEl.innerHTML = pushBlock();
     } else if (id === 'syncNow') {
       e.target.disabled = true;
       await syncNow();

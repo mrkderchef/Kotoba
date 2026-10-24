@@ -65,3 +65,14 @@ data/                                     Lerninhalte (Kana, Vokabeln, Kanji, Ph
 ```
 
 Neue Vokabeln/Phrasen dauerhaft hinzufügen: einfach in `data/vocab.js` bzw. `data/phrases.js` ergänzen (Romaji werden automatisch erzeugt). Bestehende Einträge nicht umsortieren – Phrasen werden über ihre Position identifiziert.
+
+## Tägliche Erinnerung (Push auf dem iPhone)
+
+Ein GitHub-Actions-Job (`.github/workflows/reminder.yml`, stündlich) liest den Fortschritt aus dem Sync-Gist und schickt eine Push-Nachricht – nur wenn du bis zur gewählten Uhrzeit noch nicht gelernt hast.
+
+Einmalig einrichten: Repo → *Settings → Secrets and variables → Actions* → zwei Secrets anlegen:
+- `GIST_TOKEN` – derselbe Token wie für den Sync (Scope `gist`)
+- `VAPID_PRIVATE_KEY` – privater Schlüssel aus `.secrets/VAPID_PRIVATE_KEY.txt` (liegt nur lokal, nicht im Repo)
+
+Dann in der App (vom Home-Bildschirm geöffnet, iOS 16.4+): *Einstellungen → Tägliche Erinnerung* einschalten.
+Testen: Repo → *Actions → Lern-Erinnerung → Run workflow* schickt sofort eine Nachricht an alle Geräte.

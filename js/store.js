@@ -18,7 +18,7 @@ function uid() {
 }
 
 function emptyState() {
-  return { v: 1, srs: {}, kana: {}, quiz: {}, sections: {}, custom: {}, daily: {}, decks: {}, settings: { ...DEFAULT_SETTINGS } };
+  return { v: 1, srs: {}, kana: {}, quiz: {}, push: {}, sections: {}, custom: {}, daily: {}, decks: {}, settings: { ...DEFAULT_SETTINGS } };
 }
 
 function readJSON(key, fallback) {
@@ -179,6 +179,7 @@ export function merge(a, b) {
     daily: perDevice(a.daily, b.daily, sum),
     quiz: perDevice(a.quiz, b.quiz, v => v.r + v.w),
     decks: lww(a.decks, b.decks),
+    push: lww(a.push, b.push),
     settings: (b.settings?.u || 0) > (a.settings?.u || 0) ? { ...DEFAULT_SETTINGS, ...b.settings } : a.settings,
   };
 }

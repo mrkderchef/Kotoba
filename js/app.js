@@ -9,6 +9,7 @@ import * as phrases from './views/phrases.js';
 import * as review from './views/review.js';
 import * as settings from './views/settings.js';
 import * as quiz from './views/quiz.js';
+import { refreshPush } from './push.js';
 
 let root = $('#view');
 let cleanup = null;
@@ -82,7 +83,7 @@ window.addEventListener('online', () => syncEnabled() && syncNow());
 
 // Offline-Fähigkeit
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-  navigator.serviceWorker.register('./sw.js').catch(() => {});
+  navigator.serviceWorker.register('./sw.js').then(refreshPush).catch(() => {});
 }
 
 route();
