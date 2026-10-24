@@ -1,5 +1,5 @@
 // Offline-Unterstützung: Netzwerk zuerst (immer aktuell), bei Funkloch aus dem Cache.
-const CACHE = 'kotoba-v2';
+const CACHE = 'kotoba-v3';
 const CORE = ['./', './index.html', './css/app.css', './js/app.js', './manifest.webmanifest'];
 
 self.addEventListener('install', e => {
@@ -7,7 +7,7 @@ self.addEventListener('install', e => {
 });
 
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('kotoba-v') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 
 function timeout(ms) {

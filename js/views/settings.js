@@ -9,6 +9,10 @@ const num = (k, label, min, max) => `<label class="set-row"><span>${label}</span
 const sw = (k, label, sub = '') => `<label class="set-row"><span>${label}${sub ? `<small>${sub}</small>` : ''}</span><span class="switch"><input type="checkbox" data-bool="${k}" ${state.settings[k] ? 'checked' : ''}><span></span></span></label>`;
 const sel = (k, label, opts) => `<label class="set-row"><span>${label}</span><select data-sel="${k}">${Object.entries(opts).map(([v, n]) => `<option value="${v}" ${state.settings[k] === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>`;
 
+const toneSel = () => `<label class="set-row"><span>Ton<small>Gnadenlos motiviert manche mehr 😈</small></span><select id="pushTone">
+  <option value="nice" ${state.settings.reminderTone === 'nice' ? 'selected' : ''}>Nett 😊</option>
+  <option value="roast" ${state.settings.reminderTone !== 'nice' ? 'selected' : ''}>Gnadenlos 😈</option></select></label>`;
+
 function pushBlock() {
   const p = myPush();
   const others = Object.entries(state.push || {}).filter(([id, v]) => id !== local.deviceId && v.on);
@@ -23,10 +27,12 @@ function pushBlock() {
     return `<p>Du bekommst eine Nachricht, wenn du bis zur gewählten Uhrzeit <b>noch nicht gelernt</b> hast – mit fälligen Karten und deiner Serie.</p>
       ${needsSync}
       <label class="set-row"><span>Uhrzeit</span>${hourSel(20)}</label>
+      ${toneSel()}
       <button class="btn primary wide" id="pushOn" ${syncEnabled() ? '' : 'disabled'}>🔔 Erinnerung einschalten</button>${othersNote}`;
   }
   return `<p class="sync-state">✅ Erinnerung aktiv auf diesem Gerät</p>
     <label class="set-row"><span>Uhrzeit<small>Nur wenn du bis dahin noch nicht gelernt hast</small></span>${hourSel(p.hour)}</label>
+    ${toneSel()}
     ${needsSync}
     <div class="row-btns">
       <button class="btn" id="pushTest">Probe-Nachricht</button>
@@ -44,8 +50,10 @@ function syncBlock() {
         <li><a href="https://github.com/settings/tokens/new?scopes=gist&description=Kotoba%20Sync" target="_blank" rel="noopener">Hier einen Token erstellen</a> – nur das Häkchen <b>„gist“</b>, Ablauf: <i>No expiration</i>.</li>
         <li>Token unten einfügen – auf <b>beiden Geräten</b> denselben.</li>
       </ol>
+      ${isIOS() && !isStandalone() ? '<p class="warn small-note">⚠️ Du bist gerade in <b>Safari</b>. Die App auf dem Home-Bildschirm hat einen <b>eigenen Speicher</b> – richte den Sync dort ein, sonst ist er in der App nicht da.</p>' : ''}
       <div class="inline-form">
         <input type="password" id="token" placeholder="ghp_…" autocomplete="off" autocapitalize="off" spellcheck="false">
+        ${navigator.clipboard?.readText ? '<button class="btn" id="paste" title="Aus Zwischenablage einfügen">📋</button>' : ''}
         <button class="btn primary" id="connect">Verbinden</button>
       </div>`;
   }
@@ -172,6 +180,7 @@ export function render(root) {
     pushEl.innerHTML = pushBlock();
   });
   pushEl.addEventListener('change', e => {
+    if (e.target.id === 'pushTone') { setSetting('reminderTone', e.target.value); save(); toast(e.target.value === 'nice' ? 'Ab jetzt freundlich 😊' : 'Keine Gnade mehr 😈'); }
     if (e.target.id === 'pushHour' && myPush()?.on) { setPushHour(+e.target.value); toast(`Erinnerung um ${e.target.value}:00 Uhr`); }
   });
 
@@ -185,10 +194,13 @@ export function render(root) {
       local.token = token; saveLocal();
       e.target.disabled = true; e.target.textContent = 'Verbinde …';
       await syncNow();
-      if (local.lastSyncError) { toast(local.lastSyncError, 4000); local.token = ''; saveLocal(); }
+      if (/Token ungültig|Berechtigung/.test(local.lastSyncError)) { toast(local.lastSyncError, 5000); local.token = ''; saveLocal(); }
+      else if (local.lastSyncError) toast('Token gespeichert – Sync klappt, sobald die Verbindung steht.', 4000);
       else toast('Verbunden! ☁️');
       syncEl.innerHTML = syncBlock();
       pushEl.innerHTML = pushBlock();
+    } else if (id === 'paste') {
+      try { $('#token', root).value = (await navigator.clipboard.readText()).trim(); } catch { toast('Einfügen nicht erlaubt – bitte lange ins Feld tippen.'); }
     } else if (id === 'syncNow') {
       e.target.disabled = true;
       await syncNow();

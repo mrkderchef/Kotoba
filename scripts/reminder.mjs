@@ -2,6 +2,7 @@
 // Liest den Fortschritt aus dem Sync-Gist und schickt eine Push-Nachricht an jedes Gerät,
 // auf dem die Erinnerung aktiv ist – aber nur, wenn heute noch nicht gelernt wurde.
 import { fileURLToPath } from 'node:url';
+import { reminderMessage } from '../js/reminder-text.js';
 
 const SYNC_FILE = 'kotoba-sync.json';
 const LOG_FILE = 'kotoba-push.json';
@@ -40,14 +41,8 @@ export function dueCount(state, dayNum) {
 }
 
 export function message(state, day) {
-  const due = dueCount(state, day.num);
-  const streak = streakBefore(state, day.key);
-  const cards = due === 1 ? '1 Karte ist' : `${due} Karten sind`;
-  let body;
-  if (streak >= 2) body = `🔥 Deine ${streak}-Tage-Serie läuft heute ab! ${due ? `${cards} fällig.` : 'Ein paar neue Wörter reichen.'}`;
-  else if (due) body = `${cards} fällig – 5 Minuten reichen. がんばって！`;
-  else body = 'Heute noch nichts gelernt – ein paar neue Wörter oder Kana? がんばって！';
-  return { title: 'Kotoba 言葉 – Zeit zum Lernen', body, url: APP_URL };
+  const tone = state.settings?.reminderTone === 'nice' ? 'nice' : 'roast';
+  return { ...reminderMessage({ due: dueCount(state, day.num), streak: streakBefore(state, day.key), tone }), url: APP_URL };
 }
 
 // Wer bekommt jetzt eine Nachricht?

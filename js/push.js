@@ -1,6 +1,7 @@
 // Lern-Erinnerung per Web Push.
 // Die App meldet sich hier an; das Senden übernimmt der GitHub-Actions-Job (scripts/reminder.mjs).
-import { state, local, save } from './store.js';
+import { state, local, save, dayKey, dayNum, dayActivity } from './store.js';
+import { reminderMessage } from './reminder-text.js';
 import { syncNow, syncEnabled } from './sync.js';
 
 const VAPID_PUBLIC = 'BHRtyRYo6gLxv2T3KFuHjo6qo6bTMmQ79plbiEa0ePPVcYCEbqx--UZzIeOgOPcaRlTtUBBTSdxrOSlN6GEzC4o';
@@ -64,6 +65,11 @@ export async function refreshPush() {
 
 // Lokale Probe-Benachrichtigung (prüft nur die Erlaubnis, nicht den Versand über GitHub)
 export async function testLocal() {
+  const t = dayNum();
+  const due = Object.values(state.srs).filter(c => c.d <= t).length;
+  let streak = 0;
+  for (let d = Date.now() - 86400000; dayActivity(dayKey(d)) > 0; d -= 86400000) streak++;
+  const msg = reminderMessage({ due, streak, tone: state.settings.reminderTone });
   const reg = await navigator.serviceWorker.ready;
-  await reg.showNotification('Kotoba 言葉', { body: 'So sieht deine Erinnerung aus. がんばって！', icon: 'icons/icon-192.png', tag: 'kotoba-test' });
+  await reg.showNotification(msg.title, { body: msg.body, icon: 'icons/icon-192.png', tag: 'kotoba-test' });
 }

@@ -1,4 +1,4 @@
-import { state, onChange } from './store.js';
+import { state, onChange, restoreBackup, flushBackup } from './store.js';
 import { speak } from './speech.js';
 import { syncNow, scheduleSync, syncEnabled } from './sync.js';
 import { $ } from './ui.js';
@@ -12,6 +12,9 @@ import * as quiz from './views/quiz.js';
 import { refreshPush } from './push.js';
 
 let root = $('#view');
+
+// Falls iOS den normalen Speicher geleert hat: aus IndexedDB/Cache zurückholen
+await restoreBackup();
 let cleanup = null;
 
 const ROUTES = [
@@ -75,6 +78,7 @@ onChange(() => { applyTheme(); scheduleSync(); });
 const rerender = changed => { if (changed && !document.body.classList.contains('focus')) route(); };
 if (syncEnabled()) syncNow().then(rerender);
 document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') flushBackup();
   if (!syncEnabled()) return;
   if (document.visibilityState === 'hidden') syncNow();
   else syncNow().then(rerender);

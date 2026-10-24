@@ -7,7 +7,7 @@ export const DEFAULT_SETTINGS = {
   newVocab: 10, newKanji: 5, newPhrases: 5, maxReviews: 200,
   vocabReverse: false, phraseReverse: false,
   autoSpeak: true, showRomaji: true, kanaFont: 'sans',
-  nameKana: '', nameRomaji: '', theme: 'auto', u: 0,
+  nameKana: '', nameRomaji: '', theme: 'auto', reminderTone: 'roast', u: 0,
 };
 
 // Standardmäßig aktive Decks (alles andere: aus, bis du es aktivierst)
@@ -25,24 +25,99 @@ function readJSON(key, fallback) {
   try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : fallback; } catch { return fallback; }
 }
 
-export const state = Object.assign(emptyState(), readJSON(KEY, {}));
+const storedState = readJSON(KEY, null);
+const storedLocal = readJSON(LOCAL_KEY, null);
+
+export const state = Object.assign(emptyState(), storedState || {});
 state.settings = { ...DEFAULT_SETTINGS, ...state.settings };
 
 // Gerätespezifisch, wird NICHT synchronisiert
-export const local = Object.assign({ deviceId: uid(), token: '', gistId: '', lastSync: 0, lastSyncError: '', voiceURI: '', rate: 0.9 }, readJSON(LOCAL_KEY, {}));
-saveLocal();
+export const local = Object.assign({ deviceId: uid(), token: '', gistId: '', lastSync: 0, lastSyncError: '', voiceURI: '', rate: 0.9 }, storedLocal || {});
 
 const listeners = new Set();
 export function onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); }
 
 let saveTimer = null;
+let backupTimer = null;
 export function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { console.warn('Speichern fehlgeschlagen', e); }
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => listeners.forEach(fn => fn()), 50);
+  clearTimeout(backupTimer);
+  backupTimer = setTimeout(() => backup(KEY, state), 800);
 }
 export function saveLocal() {
   try { localStorage.setItem(LOCAL_KEY, JSON.stringify(local)); } catch {}
+  backup(LOCAL_KEY, local);
+}
+
+// ---------- Zweitspeicher (IndexedDB + Cache Storage) ----------
+// iOS verliert localStorage manchmal (z. B. App direkt nach dem Speichern weggewischt).
+// Deshalb liegt alles doppelt, und beim Start wird bei Bedarf wiederhergestellt.
+const hasIDB = () => typeof indexedDB !== 'undefined';
+const hasCaches = () => typeof caches !== 'undefined';
+let dbPromise = null;
+function idb() {
+  dbPromise ||= new Promise((resolve, reject) => {
+    const r = indexedDB.open('kotoba', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('kv');
+    r.onsuccess = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+  });
+  return dbPromise;
+}
+async function idbSet(key, val) {
+  const db = await idb();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction('kv', 'readwrite');
+    tx.objectStore('kv').put(JSON.parse(JSON.stringify(val)), key);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function idbGet(key) {
+  const db = await idb();
+  return new Promise((resolve, reject) => {
+    const r = db.transaction('kv').objectStore('kv').get(key);
+    r.onsuccess = () => resolve(r.result ?? null);
+    r.onerror = () => reject(r.error);
+  });
+}
+const cacheUrl = key => new URL(`./__backup/${key}`, location.href).href;
+async function backup(key, val) {
+  if (hasIDB()) idbSet(key, val).catch(() => {});
+  if (hasCaches()) {
+    caches.open('kotoba-data')
+      .then(c => c.put(cacheUrl(key), new Response(JSON.stringify(val), { headers: { 'Content-Type': 'application/json' } })))
+      .catch(() => {});
+  }
+}
+async function readBackup(key) {
+  try { if (hasIDB()) { const v = await idbGet(key); if (v) return v; } } catch {}
+  try { if (hasCaches()) { const r = await (await caches.open('kotoba-data')).match(cacheUrl(key)); if (r) return await r.json(); } } catch {}
+  return null;
+}
+export function flushBackup() {
+  clearTimeout(backupTimer);
+  backup(KEY, state);
+  backup(LOCAL_KEY, local);
+}
+
+// Beim App-Start aufrufen (vor dem ersten Rendern)
+export async function restoreBackup() {
+  try { navigator.storage?.persist?.(); } catch {}
+  let restored = false;
+  if (!storedLocal || !local.token) {
+    const b = await readBackup(LOCAL_KEY);
+    if (b && (!storedLocal || (b.token && !local.token))) { Object.assign(local, b); restored = true; }
+  }
+  if (!storedState) {
+    const b = await readBackup(KEY);
+    if (b?.srs) { Object.assign(state, emptyState(), b); state.settings = { ...DEFAULT_SETTINGS, ...state.settings }; restored = true; }
+  }
+  try { localStorage.setItem(LOCAL_KEY, JSON.stringify(local)); localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
+  flushBackup();
+  return restored;
 }
 
 // ---------- Tage (Tageswechsel um 4 Uhr, wie bei Anki) ----------
