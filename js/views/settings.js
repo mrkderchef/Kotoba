@@ -73,15 +73,9 @@ export function render(root) {
     ${header('Einstellungen', '#/')}
     <main class="page settings">
       <section class="card">
-        <div class="card-title">Lernen</div>
-        ${num('newVocab', 'Neue Vokabeln pro Tag', 0, 100)}
-        ${num('newKanji', 'Neue Kanji pro Tag', 0, 50)}
-        ${num('newPhrases', 'Neue Phrasen pro Tag', 0, 50)}
-        ${num('maxReviews', 'Max. Wiederholungen pro Tag', 10, 9999)}
-        ${sw('vocabReverse', 'Vokabeln auch Deutsch → Japanisch', 'Zusätzliche Karte, sobald die normale sitzt')}
-        ${sw('phraseReverse', 'Phrasen in beide Richtungen')}
+        <div class="card-title">Lesen</div>
         ${sw('showRomaji', 'Romaji anzeigen', 'Später ausschalten, um Kana zu festigen')}
-        ${sw('autoSpeak', 'Automatisch vorlesen')}
+        ${sw('autoSpeak', 'Automatisch vorlesen', 'Beim Antippen von Wörtern und im Quiz')}
       </section>
 
       <section class="card">
@@ -100,6 +94,16 @@ export function render(root) {
           <label class="set-row"><span>Tempo</span><input type="range" id="rate" min="0.5" max="1.3" step="0.05" value="${local.rate}"></label>
           <button class="btn small" id="testVoice">🔊 Testen: こんにちは</button>
           <p class="muted small-note">Bessere Stimmen: iPhone/Mac → Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Japanisch (z. B. „Kyoko (Premium)“ laden).</p>` : '<p class="muted">Sprachausgabe wird in diesem Browser nicht unterstützt.</p>'}
+      </section>
+
+      <section class="card">
+        <div class="card-title">Legacy · Karteikarten</div>
+        ${num('newVocab', 'Neue Vokabeln pro Tag', 0, 100)}
+        ${num('newKanji', 'Neue Kanji pro Tag', 0, 50)}
+        ${num('newPhrases', 'Neue Phrasen pro Tag', 0, 50)}
+        ${num('maxReviews', 'Max. Wiederholungen pro Tag', 10, 9999)}
+        ${sw('vocabReverse', 'Vokabeln auch Deutsch → Japanisch', 'Zusätzliche Karte, sobald die normale sitzt')}
+        ${sw('phraseReverse', 'Phrasen in beide Richtungen')}
       </section>
 
       <section class="card">

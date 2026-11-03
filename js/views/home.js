@@ -1,4 +1,4 @@
-import { state, local, streak, dayKey, dayActivity, section, kanaStats } from '../store.js';
+import { state, local, dayKey, dayActivity, section, kanaStats } from '../store.js';
 import { counts, learnedCount } from '../srs.js';
 import { KANA, KANA_BY_CHAR } from '../../data/kana.js';
 import { syncEnabled } from '../sync.js';
@@ -6,7 +6,7 @@ import { header, bar, esc } from '../ui.js';
 
 const KINDS = ['vocab', 'custom', 'kanji', 'phrase'];
 
-function greeting() {
+export function greeting() {
   const h = new Date().getHours();
   if (h >= 4 && h < 11) return ['おはよう！', 'ohayou – Guten Morgen'];
   if (h >= 11 && h < 18) return ['こんにちは！', 'konnichiwa – Hallo'];
@@ -20,7 +20,7 @@ export function kanaProgress(script) {
   return { rows, passed, total: rows.length, next };
 }
 
-function heatmap() {
+export function heatmap() {
   const weeks = 16;
   const now = new Date(Date.now() - 4 * 3600 * 1000);
   const dow = (now.getDay() + 6) % 7; // Montag = 0
@@ -46,12 +46,10 @@ function heatmap() {
 }
 
 export function render(root) {
-  const [jp, sub] = greeting();
   const c = counts(KINDS);
   const total = c.due + c.new;
   const cv = counts(['vocab', 'custom']), ck = counts(['kanji']), cp = counts(['phrase']);
   const h = kanaProgress('h'), k = kanaProgress('k');
-  const s = streak();
   const todayN = dayActivity(dayKey());
 
   const weak = Object.keys(state.kana)
@@ -63,15 +61,14 @@ export function render(root) {
   const learnedRows = [...h.rows, ...k.rows].filter(r => section(r.id).learned).map(r => r.id);
 
   root.innerHTML = `
-    ${header('Kotoba')}
+    ${header('Legacy')}
     <main class="page">
-      <section class="hero">
-        <div>
-          <div class="hello jp">${jp}</div>
-          <div class="muted">${sub}</div>
-        </div>
-        <div class="streak ${s ? '' : 'zero'}" title="Tage in Folge gelernt"><span>🔥</span><b>${s}</b><small>${s === 1 ? 'Tag' : 'Tage'}</small></div>
-      </section>
+      <p class="muted small-note legacy-note">Der alte Karteikarten-Modus – alles wie bisher, dein Fortschritt bleibt erhalten.</p>
+      <div class="legacy-links">
+        <a class="btn" href="#/kana"><span class="jp">あ</span> Kana</a>
+        <a class="btn" href="#/vocab"><span class="jp">語</span> Vokabeln</a>
+        <a class="btn" href="#/phrases">💬 Phrasen</a>
+      </div>
 
       <section class="card daily">
         <div class="card-title">Heute</div>

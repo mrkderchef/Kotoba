@@ -4,14 +4,37 @@ Private Lern-App (PWA) für iPhone und Mac. Keine Abhängigkeiten, kein Build-Sc
 
 ## Was drin ist
 
+### 📖 Lesen (Hauptmodus)
+
+Geschichten über Allgemeinwissen – Philosophie, Geschichte, Natur, Geographie, Weltall – auf Deutsch, mit eingewobenen japanischen Wörtern. Je besser du ein Wort kannst, desto weniger Hilfe bekommt es im Text:
+
+| Stand | Im Text |
+|---|---|
+| neu / vergessen | 🌊 海 mit Lesung (うみ) und Übersetzung |
+| gelernt | 海 mit Lesung |
+| sitzt (≥ 3 Wochen) | nur 海 |
+
+- **44 Geschichten** in der Bibliothek (`data/stories/`, eingebunden über `data/stories.js`), ab Geschichte 5 mit echten japanischen Sätzen und kleinen Grammatik-Häppchen (は/です, の, あります, を/ます, ません, ました, か, から).
+- **Nach jeder Geschichte ein Mini-Quiz**: neue und fällige Wörter + 3 Wissensfragen. Danach sind die Wörter in der Wiederholung (Spaced Repetition), abgefragt im Satz-Kontext der Geschichte.
+- Wörter antippen → Details, Aussprache, alle Fundstellen. Wer beim Lesen ein „gelerntes“ Wort nachschaut, bekommt es heute nochmal in der Wiederholung.
+
+### 🗂️ Legacy
+
+Der bisherige Karteikarten-Modus, unverändert:
+
 | Bereich | Inhalt |
 |---|---|
-| **Kana** | Hiragana & Katakana in Reihen (Vokale, K, S …, Dakuten, Yōon, erweiterte Katakana). Pro Reihe: *Lernen* (Eselsbrücke + Emoji, 3 Schriftarten, Aussprache) → *Test*. Dann Gruppen-Test, Gesamttest, gemischter Test, eigener Test (wie bei Tofugu). Modi: Romaji tippen, Auswahl, umgekehrt. Fehler werden am Ende wiederholt, Schwachstellen auf der Startseite. |
-| **Vokabeln** | ~360 Alltagswörter in 13 Kategorien (Kanji · Kana · Romaji · Deutsch), 96 N5-Kanji mit On/Kun-Lesung und Beispiel, eigene Vokabeln. Spaced Repetition wie Anki (Nochmal / Schwer / Gut / Einfach). |
-| **Phrasen** | 12 Situationen (Vorstellen, Konbini, Restaurant, Bahn, Arzt, Notfall …), ~150 Sätze. Markiert, ob *du* es sagst oder es *hörst*. Kultur-Tipps. |
-| **Allgemein** | Tägliche Wiederholung, Streak, Aktivitäts-Heatmap, Sprachausgabe (japanische Systemstimme), Dark Mode, offline nutzbar, Sync per GitHub Gist, Backup als JSON. |
+| **Kana** | Hiragana & Katakana in Reihen mit Eselsbrücken, Tests, Schwachstellen. |
+| **Vokabeln** | ~360 Alltagswörter, 96 N5-Kanji, eigene Vokabeln. Spaced Repetition wie Anki. |
+| **Phrasen** | 12 Situationen, ~150 Sätze, Kultur-Tipps. |
 
-Tastatur (Mac): Leertaste = aufdecken / „Gut“, `1`–`4` = bewerten, `Z` = rückgängig, `R` = nochmal vorlesen, Pfeiltasten beim Kana-Lernen.
+### Allgemein
+
+Streak, Aktivitäts-Heatmap, Sprachausgabe (japanische Systemstimme), Dark Mode, offline nutzbar, Sync per GitHub Gist (inkl. Wortschatz und Lesefortschritt), Backup als JSON.
+
+Tastatur (Mac): im Quiz `1`–`4` = Antwort, Leertaste = weiter, `R` = vorlesen. Legacy: Leertaste = aufdecken / „Gut“, `1`–`4` = bewerten, `Z` = rückgängig.
+
+Weitere Geschichten können später als Dateien in `data/stories/` ergänzt und in `data/stories.js` eingebunden werden. Der automatische Geschichten-Generator ist noch nicht implementiert.
 
 ## Lokal starten (Mac)
 
@@ -20,6 +43,8 @@ cd ~/Desktop/japanisch
 python3 -m http.server 8000
 ```
 Dann <http://localhost:8000> öffnen.
+
+Inhalte, Quiz-Daten und die Vollständigkeit des Offline-Caches prüfen: `node scripts/check.mjs`.
 
 ## Online stellen (nötig fürs iPhone)
 
@@ -60,8 +85,12 @@ js/srs.js                                 Spaced-Repetition-Algorithmus
 js/cards.js                               Kartenkatalog
 js/sync.js                                GitHub-Gist-Sync
 js/romaji.js                              Kana ⇄ Romaji
-js/views/                                 Seiten (Start, Kana, Vokabeln, Phrasen, Wiederholung, Einstellungen)
-data/                                     Lerninhalte (Kana, Vokabeln, Kanji, Phrasen)
+js/stories.js                             Geschichten: Text-Parser, Hilfestufen, Wortschatz
+js/views/read.js                          Lesen, Quiz, Wiederholung, Wörterliste
+js/views/                                 Weitere Seiten (Legacy: Kana, Vokabeln, Phrasen …; Einstellungen)
+data/stories.js, data/stories/            Geschichten-Bibliothek (Syntax in data/stories.js)
+data/words.js                             Wortschatz für den Lesemodus
+data/                                     Legacy-Inhalte (Kana, Vokabeln, Kanji, Phrasen)
 ```
 
 Neue Vokabeln/Phrasen dauerhaft hinzufügen: einfach in `data/vocab.js` bzw. `data/phrases.js` ergänzen (Romaji werden automatisch erzeugt). Bestehende Einträge nicht umsortieren – Phrasen werden über ihre Position identifiziert.

@@ -45,7 +45,7 @@ export function back(card) {
     ${ro}<div class="b-de">${esc(item.de)}</div>${note}`;
 }
 
-function session(root, queue, { cram = false, title = '', exit = '#/', kinds = [] } = {}) {
+function session(root, queue, { cram = false, title = '', exit = '#/legacy', kinds = [] } = {}) {
   const startSize = queue.length;
   let cur = null, revealed = false;
   let reviewed = 0, again = 0;
@@ -194,7 +194,7 @@ const TITLES = { 'vocab,custom': 'Vokabeln', kanji: 'Kanji', phrase: 'Phrasen' }
 export function renderReview(root, [kindsStr], q) {
   const kinds = kindsStr.split(',').filter(k => NEW_FIELD[k]);
   const queue = q.extra ? newCards(kinds, { ignoreLimit: true }).slice(0, 5) : buildSession(kinds);
-  const exit = kinds.length === 1 && kinds[0] === 'phrase' ? '#/phrases' : kinds.includes('vocab') && !kinds.includes('phrase') || kinds[0] === 'kanji' && kinds.length === 1 ? '#/vocab' : '#/';
+  const exit = kinds.length === 1 && kinds[0] === 'phrase' ? '#/phrases' : kinds.includes('vocab') && !kinds.includes('phrase') || kinds[0] === 'kanji' && kinds.length === 1 ? '#/vocab' : '#/legacy';
   return session(root, queue, { title: TITLES[kinds.join(',')] || 'Tägliche Wiederholung', exit, kinds });
 }
 

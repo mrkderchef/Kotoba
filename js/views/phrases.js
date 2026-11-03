@@ -22,7 +22,7 @@ export function renderOverview(root) {
   const c = counts(['phrase']);
   const items = phraseItems();
   root.innerHTML = `
-    ${header('Phrasen')}
+    ${header('Phrasen', '#/legacy')}
     <main class="page">
       <section class="card daily">
         <div class="due-grid two">

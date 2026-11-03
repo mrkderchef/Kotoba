@@ -9,6 +9,7 @@ import * as phrases from './views/phrases.js';
 import * as review from './views/review.js';
 import * as settings from './views/settings.js';
 import * as quiz from './views/quiz.js';
+import * as read from './views/read.js';
 import { refreshPush } from './push.js';
 
 let root = $('#view');
@@ -18,19 +19,24 @@ await restoreBackup();
 let cleanup = null;
 
 const ROUTES = [
-  [/^$/, home.render, 'home'],
-  [/^kana(?:\/(h|k))?$/, kana.renderOverview, 'kana'],
-  [/^kana\/learn\/([\w-]+)$/, kana.renderLearn, 'kana', true],
-  [/^kana\/test$/, kana.renderTest, 'kana', true],
-  [/^kana\/custom$/, kana.renderCustom, 'kana'],
-  [/^vocab$/, vocab.renderOverview, 'vocab'],
-  [/^vocab\/cat\/([\w-]+)$/, vocab.renderCategory, 'vocab'],
-  [/^vocab\/add(?:\/([\w-]+))?$/, vocab.renderAdd, 'vocab'],
-  [/^phrases$/, phrases.renderOverview, 'phrases'],
-  [/^phrases\/([\w-]+)$/, phrases.renderSituation, 'phrases'],
+  [/^$/, read.renderHome, 'read'],
+  [/^story\/([\w-]+)$/, read.renderStory, 'read'],
+  [/^practice$/, read.renderPractice, null, true],
+  [/^words$/, read.renderWords, 'words'],
+  // Legacy: der alte Karteikarten-Modus
+  [/^legacy$/, home.render, 'legacy'],
+  [/^kana(?:\/(h|k))?$/, kana.renderOverview, 'legacy'],
+  [/^kana\/learn\/([\w-]+)$/, kana.renderLearn, 'legacy', true],
+  [/^kana\/test$/, kana.renderTest, 'legacy', true],
+  [/^kana\/custom$/, kana.renderCustom, 'legacy'],
+  [/^vocab$/, vocab.renderOverview, 'legacy'],
+  [/^vocab\/cat\/([\w-]+)$/, vocab.renderCategory, 'legacy'],
+  [/^vocab\/add(?:\/([\w-]+))?$/, vocab.renderAdd, 'legacy'],
+  [/^phrases$/, phrases.renderOverview, 'legacy'],
+  [/^phrases\/([\w-]+)$/, phrases.renderSituation, 'legacy'],
   [/^review\/([\w,]+)$/, review.renderReview, null, true],
   [/^cram\/(\w+)\/([\w-]+)$/, review.renderCram, null, true],
-  [/^quiz$/, quiz.renderStart, 'vocab'],
+  [/^quiz$/, quiz.renderStart, 'legacy'],
   [/^quiz\/run$/, quiz.renderRun, null, true],
   [/^settings$/, settings.render, 'settings'],
 ];

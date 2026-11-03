@@ -1,6 +1,44 @@
 // Offline-Unterstützung: Netzwerk zuerst (immer aktuell), bei Funkloch aus dem Cache.
-const CACHE = 'kotoba-v3';
-const CORE = ['./', './index.html', './css/app.css', './js/app.js', './manifest.webmanifest'];
+const CACHE = 'kotoba-v4';
+const CORE = [
+  './',
+  './index.html',
+  './css/app.css',
+  './manifest.webmanifest',
+  './js/app.js',
+  './js/cards.js',
+  './js/push.js',
+  './js/reminder-text.js',
+  './js/romaji.js',
+  './js/speech.js',
+  './js/srs.js',
+  './js/store.js',
+  './js/stories.js',
+  './js/sync.js',
+  './js/ui.js',
+  './js/views/home.js',
+  './js/views/kana.js',
+  './js/views/phrases.js',
+  './js/views/quiz.js',
+  './js/views/read.js',
+  './js/views/review.js',
+  './js/views/settings.js',
+  './js/views/vocab.js',
+  './data/kana.js',
+  './data/phrases.js',
+  './data/stories/01.js',
+  './data/stories/02.js',
+  './data/stories/03.js',
+  './data/stories/04.js',
+  './data/stories/05.js',
+  './data/stories.js',
+  './data/vocab.js',
+  './data/words.js',
+  './icons/apple-touch-icon.png',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/icon-maskable-512.png',
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));

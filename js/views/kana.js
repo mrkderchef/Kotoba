@@ -19,7 +19,7 @@ export function renderOverview(root, [script = 'h']) {
   const allRows = groups.flatMap(g => g.rows);
   const allSid = `${script}-all`;
   root.innerHTML = `
-    ${header('Kana')}
+    ${header('Kana', '#/legacy')}
     <main class="page">
       <div class="seg">
         ${Object.entries(SCRIPT_NAMES).map(([k, n]) => `<a href="#/kana/${k}" class="${k === script ? 'on' : ''}"><span class="jp">${k === 'h' ? 'あ' : 'ア'}</span> ${n}</a>`).join('')}

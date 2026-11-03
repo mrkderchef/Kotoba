@@ -86,7 +86,7 @@ export function renderOverview(root, _, q) {
   }
 
   root.innerHTML = `
-    ${header('Vokabeln')}
+    ${header('Vokabeln', '#/legacy')}
     <main class="page">
       <section class="card daily">
         <div class="due-grid two">
