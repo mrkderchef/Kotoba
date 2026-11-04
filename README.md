@@ -14,7 +14,7 @@ Geschichten über Allgemeinwissen – Philosophie, Geschichte, Natur, Geographie
 | gelernt | 海 mit Lesung |
 | sitzt (≥ 3 Wochen) | nur 海 |
 
-- **44 Geschichten** in der Bibliothek (`data/stories/`, eingebunden über `data/stories.js`), ab Geschichte 5 mit echten japanischen Sätzen und kleinen Grammatik-Häppchen (は/です, の, あります, を/ます, ません, ました, か, から).
+- **52 Geschichten** in der Bibliothek (`data/stories/`, eingebunden über `data/stories.js`), ab Geschichte 5 mit echten japanischen Sätzen und kleinen Grammatik-Häppchen (は/です, の, あります, を/ます, ません, ました, か, から).
 - **Nach jeder Geschichte ein Mini-Quiz**: neue und fällige Wörter + 3 Wissensfragen. Danach sind die Wörter in der Wiederholung (Spaced Repetition), abgefragt im Satz-Kontext der Geschichte.
 - Wörter antippen → Details, Aussprache, alle Fundstellen. Wer beim Lesen ein „gelerntes“ Wort nachschaut, bekommt es heute nochmal in der Wiederholung.
 

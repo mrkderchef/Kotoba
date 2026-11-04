@@ -18,5 +18,6 @@ import { STORIES as S02 } from './stories/02.js';
 import { STORIES as S03 } from './stories/03.js';
 import { STORIES as S04 } from './stories/04.js';
 import { STORIES as S05 } from './stories/05.js';
+import { STORIES as S06 } from './stories/06.js';
 
-export const STORIES = [...S01, ...S02, ...S03, ...S04, ...S05];
+export const STORIES = [...S01, ...S02, ...S03, ...S04, ...S05, ...S06];
