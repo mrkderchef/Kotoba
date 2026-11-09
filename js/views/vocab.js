@@ -104,6 +104,11 @@ export function renderOverview(root, _, q) {
         <span class="cat-info"><b>Alte Vokabeln testen</b><small>Zufällig aus ${learnedPool().length} gelernten Wörtern – schwache kommen öfter</small></span>
         <span class="chev">›</span>
       </a>
+      <a class="card quiz-entry" href="#/sentences">
+        <span class="cat-emoji">✍️</span>
+        <span class="cat-info"><b>Satztest</b><small>Sätze übersetzen oder selbst bilden – Antworten auf Romaji</small></span>
+        <span class="chev">›</span>
+      </a>
       <input class="search" id="search" type="search" placeholder="Suchen: 駅, eki, Bahnhof …" autocomplete="off" autocapitalize="off">
       <div id="results"></div>
       <div id="tabbed">

@@ -249,6 +249,7 @@ export function renderHome(root) {
         ${due.length
           ? `<a class="btn primary big" href="#/practice">🔁 ${due.length} ${due.length === 1 ? 'Wort' : 'Wörter'} wiederholen</a>`
           : `<div class="done">✨ ${p.n ? 'Gerade nichts fällig – lies eine Geschichte!' : 'Lies deine erste Geschichte – danach kommen die Wörter hierher.'}</div>`}
+        <a class="btn wide" href="#/sentences">✍️ Satztest · auf Romaji schreiben</a>
       </section>
 
       <section class="card">
@@ -453,6 +454,11 @@ export function renderWords(root) {
         <span class="st st-young">Gelernt</span> nur Lesung ·
         <span class="st st-mature">Sitzt</span> nur noch Japanisch
       </p>
+      <a class="card quiz-entry" href="#/sentences">
+        <span class="cat-emoji">✍️</span>
+        <span class="cat-info"><b>Satztest</b><small>Sätze übersetzen oder selbst bilden – Antworten auf Romaji</small></span>
+        <span class="chev">›</span>
+      </a>
       <input class="search" id="search" type="search" placeholder="Suchen: 海, umi, Meer …" autocomplete="off" autocapitalize="off">
       ${list.length ? `<ul class="words" id="list">${list.map(wordRow).join('')}</ul>` : '<p class="muted center">Noch keine Wörter – lies deine erste Geschichte!</p>'}
       ${waiting ? `<p class="muted center small-note">📖 ${waiting} weitere Wörter im Wortschatz.</p>` : ''}

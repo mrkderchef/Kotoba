@@ -9,6 +9,7 @@ import * as phrases from './views/phrases.js';
 import * as review from './views/review.js';
 import * as settings from './views/settings.js';
 import * as quiz from './views/quiz.js';
+import * as sentences from './views/sentences.js';
 import * as read from './views/read.js';
 import { refreshPush } from './push.js';
 
@@ -38,6 +39,8 @@ const ROUTES = [
   [/^cram\/(\w+)\/([\w-]+)$/, review.renderCram, null, true],
   [/^quiz$/, quiz.renderStart, 'legacy'],
   [/^quiz\/run$/, quiz.renderRun, null, true],
+  [/^sentences$/, sentences.renderStart, 'words'],
+  [/^sentences\/run$/, sentences.renderRun, null, true],
   [/^settings$/, settings.render, 'settings'],
 ];
 

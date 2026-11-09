@@ -108,6 +108,7 @@ export function render(root) {
         </div>
         ${heatmap()}
         <a class="btn wide" href="#/quiz">🎯 Alte Vokabeln testen</a>
+        <a class="btn wide" href="#/sentences">✍️ Satztest · auf Romaji schreiben</a>
       </section>
 
       <p class="foot muted">${syncEnabled()

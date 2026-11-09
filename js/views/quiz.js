@@ -58,6 +58,7 @@ export function renderStart(root) {
   root.innerHTML = `
     ${header('Alte Vokabeln testen', '#/vocab')}
     <main class="page">
+      <div class="row-btns"><a class="btn primary" href="#/quiz" aria-current="page">🎯 Wörtertest</a><a class="btn" href="#/sentences">✍️ Satztest</a></div>
       <section class="card">
         <div class="card-title">🎯 Test-Modus</div>
         <p>Zieht zufällig aus <b>allen ${pool.length} Vokabeln</b>, die du schon gelernt hast. Wörter, die du oft falsch hast, kommen häufiger dran. Was du gerade erst hattest, kommt seltener.</p>

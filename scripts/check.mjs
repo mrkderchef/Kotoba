@@ -5,6 +5,8 @@ import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import { STORIES } from '../data/stories.js';
 import { WORDS } from '../data/words.js';
+import { SENTENCES, SENTENCE_TOPICS } from '../data/sentences.js';
+import { matchesSentence, sentencePool, sentenceKey } from '../js/sentences.js';
 
 const root = new URL('../', import.meta.url);
 const pool = new Set(WORDS.map(w => w[0]));
@@ -30,6 +32,37 @@ for (const s of STORIES) {
   }
 }
 
+assert.equal(new Set(SENTENCES.map(s => s.id)).size, SENTENCES.length, 'Doppelte Satz-IDs');
+for (const s of SENTENCES) {
+  assert(/^[\w-]+$/.test(s.id), `Ungültige Satz-ID: ${s.id}`);
+  assert(Object.hasOwn(SENTENCE_TOPICS, s.topic), `${s.id}: unbekanntes Thema`);
+  for (const field of ['de', 'jp', 'ro', 'task', 'note']) assert(s[field]?.trim(), `${s.id}: ${field} fehlt`);
+  assert(s.words.length >= 2 && s.words.every(w => w.trim()), `${s.id}: Wörter für Satzbau fehlen`);
+  assert(/^[a-z\s.,?!'-]+$/i.test(s.ro), `${s.id}: Musterlösung muss Romaji enthalten`);
+  assert(matchesSentence(s.ro, s), `${s.id}: Musterlösung wird abgelehnt`);
+  assert(matchesSentence(s.ro.toUpperCase().replaceAll(' ', ''), s), `${s.id}: Großschreibung / Wortabstände`);
+  for (const answer of s.answers || []) assert(matchesSentence(answer, s), `${s.id}: Variante wird abgelehnt`);
+  assert(!matchesSentence('', s) && !matchesSentence('... !', s), `${s.id}: leere Antwort erkannt`);
+  assert(!matchesSentence('keine ahnung', s), `${s.id}: falsche Antwort erkannt`);
+}
+const sentence = id => SENTENCES.find(s => s.id === id);
+assert(matchesSentence('Watashi ha mizu wo nomimasu!', sentence('water')), 'Partikelschreibweise ha / wo');
+assert(matchesSentence('ashita Tōkyō e ikimasu', sentence('tomorrow-tokyo')), 'Makrons und alternatives Zielpartikel');
+assert(matchesSentence('ｍｉｚｕ　ｏ　ｎｏｍｉｍａｓｕ。', sentence('water')), 'Vollbreite lateinische Zeichen');
+assert(matchesSentence('maiasa kōhī o nomimasu', sentence('morning-coffee')), 'Lange Vokale mit Makrons');
+assert(!matchesSentence('maiasa kohi o nomimasu', sentence('morning-coffee')), 'Vokallänge muss erhalten bleiben');
+assert(!matchesSentence('mizu ni nomimasu', sentence('water')), 'Falsche Partikel nicht akzeptieren');
+assert(!matchesSentence('mizu o nomimasen', sentence('water')), 'Falsche Verbform nicht akzeptieren');
+assert(!matchesSentence('mizu o nomimasu extra', sentence('water')), 'Zusätzliche Wörter nicht ignorieren');
+assert(!matchesSentence('水を飲みます', sentence('water')), 'Romaji-Eingabe erwartet');
+for (const topic of Object.keys(SENTENCE_TOPICS)) {
+  assert(sentencePool(topic).length > 0, `${topic}: keine Sätze`);
+  assert(sentencePool(topic).every(s => s.topic === topic), `${topic}: falsche Themenauswahl`);
+}
+assert.deepEqual(sentencePool('all', ['water']).map(s => s.id), ['water'], 'Fehler-Runde filtern');
+assert.equal(sentencePool('places', ['water']).length, 0, 'Themenfilter auch bei Fehler-Runde');
+assert.notEqual(sentenceKey('water', 'translate'), sentenceKey('water', 'build'), 'Getrennte Statistik der Modi');
+
 const worker = await readFile(new URL('sw.js', root), 'utf8');
 const context = { self: { addEventListener() {} } };
 vm.runInNewContext(`${worker}\nglobalThis.assets = CORE;`, context);
@@ -48,4 +81,4 @@ async function checkModule(url) {
   }
 }
 await checkModule(new URL('js/app.js', root));
-console.log(`OK: ${STORIES.length} Geschichten, ${WORDS.length} Wörter, Quiz-Daten und ${visited.size} Offline-Module geprüft.`);
+console.log(`OK: ${STORIES.length} Geschichten, ${WORDS.length} Wörter, ${SENTENCES.length} Satzaufgaben, Romaji-Vergleich, Quiz-Daten und ${visited.size} Offline-Module geprüft.`);

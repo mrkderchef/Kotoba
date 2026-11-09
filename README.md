@@ -30,6 +30,8 @@ Der bisherige Karteikarten-Modus, unverändert:
 
 ### Allgemein
 
+**Satztest:** Neben dem Wörtertest gibt es unter „Satztest“ 32 Aufgaben in vier Themenbereichen. Deutsche Sätze ins Japanische übersetzen, aus Wörtern Sätze bilden oder beides gemischt – die Antworten werden selbst auf Romaji getippt. Der Test zeigt Musterlösung, Aussprache und Grammatik-Erklärung. Gängige Schreibvarianten werden erkannt; andere richtige Formulierungen können selbst als richtig gewertet werden. Fehler lassen sich gezielt wiederholen. Die eigene Test-Statistik wird synchronisiert und zählt zur Lernaktivität, unabhängig vom Wiederholungsplan. Auch offline nutzbar.
+
 Streak, Aktivitäts-Heatmap, Sprachausgabe (japanische Systemstimme), Dark Mode, offline nutzbar, Sync per GitHub Gist (inkl. Wortschatz und Lesefortschritt), Backup als JSON.
 
 Tastatur (Mac): im Quiz `1`–`4` = Antwort, Leertaste = weiter, `R` = vorlesen. Legacy: Leertaste = aufdecken / „Gut“, `1`–`4` = bewerten, `Z` = rückgängig.
