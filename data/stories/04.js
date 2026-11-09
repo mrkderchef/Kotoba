@@ -108,7 +108,7 @@ Trotzdem gibt es noch die kleinen Läden: den {八百屋} mit Gemüsekisten vor 
 
 ! Verbpaare: **開く / 閉まる** passiert von selbst (die Tür geht auf / zu), **開ける / 閉める** macht jemand (ich öffne / schließe die Tür).
 
-> {店}は{九}時《じ》に{開く|開きます|あきます}。 | Der Laden öffnet um neun.
+> {店}は{九|九|く}時《じ》に{開く|開きます|あきます}。 | Der Laden öffnet um neun.
 > {ドア}を{開ける|開けて|あけて}ください。 | Mach bitte die Tür auf.
 > {窓}を{閉める|閉めて|しめて}ください。{寒い}です。 | Mach bitte das Fenster zu. Es ist kalt.
 > {本屋}は{夜}{十}時《じ》に{閉まる|閉まります|しまります}。 | Die Buchhandlung schließt um zehn Uhr abends.

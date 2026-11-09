@@ -4,6 +4,7 @@ import { schedule } from '../srs.js';
 import { STATUS_LABEL } from '../cards.js';
 import { speak, canSpeak } from '../speech.js';
 import { hasKanji } from '../romaji.js';
+import { sentencePool } from '../sentences.js';
 import {
   allStories, storyById, storyWords, parseStory, renderInline, jpKana, jpRomaji, wordInfo, wordCard, wordId, wordStatus,
   helpLevel, wordPool, knownWords, dueWords, contexts, isRead, markRead, nextStory, progress,
@@ -316,6 +317,7 @@ export function renderStory(root, [id]) {
         <ul class="words">${words.map(wordRow).join('')}</ul>
       </section>
 
+      ${sentencePool(s.id).length ? `<a class="btn wide" href="#/sentences?story=${s.id}">✍️ Sätze aus dieser Geschichte üben</a>` : ''}
       <button class="btn primary big" id="done">Fertig gelesen → Mini-Quiz</button>
     </main>`;
 
@@ -351,6 +353,7 @@ export function renderStory(root, [id]) {
     const total = first.size + facts;
     const next = nextStory();
     const dueN = dueWords().length;
+    const sentences = sentencePool(s.id);
     const main = $('main', root);
     main.innerHTML = `
       <div class="card result">
@@ -359,6 +362,12 @@ export function renderStory(root, [id]) {
         ${total ? `<p class="muted">${right} von ${total} beim ersten Mal richtig</p>` : ''}
         ${fresh.length ? `<div class="sub-title">Neu in deinem Wortschatz</div>${chips(fresh)}` : ''}
         ${relook.length ? `<p class="muted small-note">${relook.length} nachgeschaute ${relook.length === 1 ? 'Wort kommt' : 'Wörter kommen'} heute in die Wiederholung.</p>` : ''}
+        ${sentences.length ? `<section class="sentence-story-recap">
+          <div class="sub-title">Grammatik & Sätze aus dieser Geschichte</div>
+          ${sentences[0].note ? `<div class="tip">${esc(sentences[0].note)}</div>` : ''}
+          <p class="muted small-note">${sentences.length} Sätze mit deinen gelernten Wörtern sind jetzt bereit.</p>
+          <a class="btn wide" href="#/sentences/run?mode=mix&story=${s.id}&n=all">✍️ Diese Sätze auf Romaji üben</a>
+        </section>` : ''}
         <div class="row-btns col">
           ${next ? `<a class="btn primary" href="#/story/${next.id}">Weiter: ${next.emoji} ${esc(next.title)}</a>` : ''}
           ${dueN ? `<a class="btn" href="#/practice">🔁 ${dueN} ${dueN === 1 ? 'Wort' : 'Wörter'} wiederholen</a>` : ''}
@@ -456,7 +465,7 @@ export function renderWords(root) {
       </p>
       <a class="card quiz-entry" href="#/sentences">
         <span class="cat-emoji">✍️</span>
-        <span class="cat-info"><b>Satztest</b><small>Sätze übersetzen oder selbst bilden – Antworten auf Romaji</small></span>
+        <span class="cat-info"><b>Satztest</b><small>Sätze aus deinen Geschichten mit gelernten Wörtern – auf Romaji</small></span>
         <span class="chev">›</span>
       </a>
       <input class="search" id="search" type="search" placeholder="Suchen: 海, umi, Meer …" autocomplete="off" autocapitalize="off">

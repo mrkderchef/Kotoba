@@ -406,6 +406,7 @@ ul.rows li:first-child { border-top: 0; }
 .sentence-romaji { color: var(--indigo); font-size: 1.1rem; font-weight: 600; overflow-wrap: anywhere; }
 .sentence-mistakes { text-align: left; list-style: none; margin: 0; padding: 0; }
 .sentence-mistakes li { display: grid; gap: 6px; padding: 14px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.sentence-story-recap { text-align: left; display: grid; gap: 10px; }
 
 /* ---------- Einstellungen ---------- */
 .set-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }

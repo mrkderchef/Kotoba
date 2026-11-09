@@ -30,7 +30,7 @@ Der bisherige Karteikarten-Modus, unverändert:
 
 ### Allgemein
 
-**Satztest:** Neben dem Wörtertest gibt es unter „Satztest“ 32 Aufgaben in vier Themenbereichen. Deutsche Sätze ins Japanische übersetzen, aus Wörtern Sätze bilden oder beides gemischt – die Antworten werden selbst auf Romaji getippt. Der Test zeigt Musterlösung, Aussprache und Grammatik-Erklärung. Gängige Schreibvarianten werden erkannt; andere richtige Formulierungen können selbst als richtig gewertet werden. Fehler lassen sich gezielt wiederholen. Die eigene Test-Statistik wird synchronisiert und zählt zur Lernaktivität, unabhängig vom Wiederholungsplan. Auch offline nutzbar.
+**Satztest:** Die Aufgaben entstehen automatisch aus den japanischen Beispielsätzen, Übersetzungen und Grammatik-Häppchen der Geschichten. Ein Satz wird freigeschaltet, wenn die Geschichte fertig gelesen ist und alle darin markierten Lernwörter mindestens einmal richtig wiederholt wurden (Intervall ≥ 1 Tag; passende Legacy- und eigene Vokabeln zählen mit). Neue Geschichten erweitern den Test automatisch, ohne separate Aufgabenliste. Nach dem Story-Quiz gibt es einen direkten Einstieg; im Satztest kann nach Geschichte gefiltert werden. Übersetzen, mit Wortbausteinen Sätze bilden oder beides gemischt – Antworten werden selbst auf Romaji getippt. Grammatik-Hinweis, Musterlösung, Aussprache, eigene Bewertung anderer gültiger Formulierungen und gezielte Fehlerwiederholung sind enthalten. Die Test-Statistik wird synchronisiert und zählt zur Lernaktivität, unabhängig vom Wiederholungsplan. Auch offline nutzbar.
 
 Streak, Aktivitäts-Heatmap, Sprachausgabe (japanische Systemstimme), Dark Mode, offline nutzbar, Sync per GitHub Gist (inkl. Wortschatz und Lesefortschritt), Backup als JSON.
 

@@ -1,15 +1,19 @@
-import { SENTENCES, SENTENCE_TOPICS } from '../../data/sentences.js';
-import { matchesSentence, normalizeSentence, sentenceKey, sentencePool } from '../sentences.js';
-import { quizRecord, quizStats, bump, save } from '../store.js';
+import { matchesSentence, normalizeSentence, sentenceKey, sentencePool, sentenceCatalog, sentenceStories } from '../sentences.js';
+import { state, quizRecord, quizStats, bump, save } from '../store.js';
+import { nextStory, allStories } from '../stories.js';
 import { header, esc, $, go, bar, shuffle, speakBtn } from '../ui.js';
 
 const MODES = { translate: 'Übersetzen', build: 'Satz bilden', mix: 'Gemischt' };
 const modeOf = value => Object.hasOwn(MODES, value) ? value : 'translate';
-const topicOf = value => Object.hasOwn(SENTENCE_TOPICS, value) ? value : 'all';
+const storyOf = value => sentenceStories().some(s => s.id === value && s.available) ? value : 'all';
 
-export function renderStart(root) {
-  let mode = 'translate', topic = 'all', size = '10';
-  const stats = SENTENCES.flatMap(s => ['translate', 'build'].map(m => quizStats(sentenceKey(s.id, m))));
+export function renderStart(root, _, q = {}) {
+  let mode = 'translate', story = storyOf(q.story), size = '10';
+  const pool = sentencePool();
+  const stories = sentenceStories();
+  const waiting = sentenceCatalog().filter(s => state.read[s.story]).length - pool.length;
+  const suggestion = allStories().find(s => !state.read[s.id] && sentenceCatalog().some(x => x.story === s.id)) || nextStory();
+  const stats = sentenceCatalog().flatMap(s => ['translate', 'build'].map(m => quizStats(sentenceKey(s.id, m))));
   const attempts = stats.reduce((n, s) => n + s.n, 0);
   const right = stats.reduce((n, s) => n + s.r, 0);
   root.innerHTML = `
@@ -17,41 +21,52 @@ export function renderStart(root) {
     <main class="page">
       <section class="card">
         <div class="card-title">✍️ Ganze Sätze auf Romaji</div>
-        <p>Übersetze deutsche Sätze oder bilde mit vorgegebenen Wörtern eigene Sätze. Deine Antwort tippst du selbst – zum Beispiel <b>watashi wa gakusei desu</b>.</p>
-        <p class="muted small-note">${SENTENCES.length} Aufgaben mit Musterlösungen und Grammatik-Tipps. Großschreibung, Leerzeichen und Satzzeichen sind egal. Lange Vokale bitte mitschreiben, zum Beispiel ou oder ō.</p>
+        <p>Übe die Beispielsätze und Grammatik aus deinen gelesenen Geschichten. Ein Satz wird freigeschaltet, sobald du seine Lernwörter mindestens einmal richtig wiederholt hast.</p>
+        <p><b>${pool.length} Sätze</b> aus <b>${stories.filter(s => s.available).length} Geschichten</b> sind für dich bereit.${waiting ? ` ${waiting} weitere Sätze warten darauf, dass du ihre Wörter wiederholst.` : ''}</p>
+        <p class="muted small-note">Du schreibst auf Romaji. Großschreibung, Leerzeichen und Satzzeichen sind egal. Lange Vokale bitte mitschreiben, zum Beispiel ou oder ō.</p>
         ${attempts ? `<p class="small-note">Bisher ${attempts} Sätze getestet · ${Math.round(right / attempts * 100)} % richtig</p>` : ''}
       </section>
-      <section class="card form">
+      ${pool.length ? `<section class="card form">
         <label for="sentence-mode">Aufgabe
           <select id="sentence-mode">${Object.entries(MODES).map(([id, label]) => `<option value="${id}">${label}</option>`).join('')}</select>
         </label>
         <p class="muted small-note" id="mode-description">Du siehst einen deutschen Satz und übersetzt ihn ins Japanische.</p>
-        <label for="sentence-topic">Thema
-          <select id="sentence-topic"><option value="all">Alle Themen</option>${Object.entries(SENTENCE_TOPICS).map(([id, label]) => `<option value="${id}">${label}</option>`).join('')}</select>
+        <label for="sentence-story">Geschichte
+          <select id="sentence-story"><option value="all">Alle gelesenen Geschichten · ${pool.length} Sätze</option>${stories.map(s => `<option value="${esc(s.id)}" ${s.id === story ? 'selected' : ''} ${s.available ? '' : 'disabled'}>${s.emoji} ${esc(s.title)} · ${s.available} Sätze</option>`).join('')}</select>
         </label>
         <label for="sentence-size">Umfang
           <select id="sentence-size"><option value="10">10 Sätze</option><option value="20">20 Sätze</option><option value="all">Alle Sätze</option></select>
         </label>
         <p class="muted small-note" id="sentence-count"></p>
         <button class="btn primary big" id="sentence-start">Satztest starten</button>
-      </section>
+      </section>` : `<section class="card">
+        <div class="card-title">Deine Geschichten schalten Sätze frei</div>
+        <p>${stories.length ? 'Wiederhole die Wörter aus deinen gelesenen Geschichten. Sobald du die Wörter eines Beispielsatzes richtig beantwortet hast, erscheint er hier.' : 'Lies eine Geschichte mit japanischen Beispielsätzen und schließe ihr Mini-Quiz ab. Danach kannst du genau diese Sätze und ihre Grammatik üben.'}</p>
+        <div class="row-btns col">
+          ${stories.length ? '<a class="btn primary" href="#/practice">Wörter wiederholen</a>' : ''}
+          ${suggestion ? `<a class="btn ${stories.length ? '' : 'primary'}" href="#/story/${suggestion.id}">${suggestion.emoji} ${esc(suggestion.title)} lesen</a>` : ''}
+          <a class="btn ghost" href="#/">Zur Bibliothek</a>
+        </div>
+      </section>`}
       <a class="btn wide" href="#/quiz">🎯 Zum Wörtertest</a>
     </main>`;
 
+  if (!pool.length) return;
+
   function updateCount() {
-    const available = sentencePool(topic).length;
+    const available = sentencePool(story).length;
     $('#sentence-count', root).textContent = `${size === 'all' ? available : Math.min(+size, available)} verschiedene Sätze pro Runde. Schwache Sätze kommen in neuen Runden häufiger dran.`;
   }
   $('#sentence-mode', root).onchange = e => {
     mode = e.target.value;
     $('#mode-description', root).textContent = mode === 'build'
-      ? 'Du bekommst eine Situation und Wörter in Romaji. Ergänze selbst die passenden Partikeln und Verbformen.'
+      ? 'Du bekommst einen Satz aus deiner Geschichte und seine Wörter in Romaji. Ergänze selbst Reihenfolge, Partikeln und Verbformen.'
       : mode === 'mix' ? 'Übersetzungen und Satzbau-Aufgaben wechseln sich ab.'
         : 'Du siehst einen deutschen Satz und übersetzt ihn ins Japanische.';
   };
-  $('#sentence-topic', root).onchange = e => { topic = e.target.value; updateCount(); };
+  $('#sentence-story', root).onchange = e => { story = e.target.value; updateCount(); };
   $('#sentence-size', root).onchange = e => { size = e.target.value; updateCount(); };
-  $('#sentence-start', root).onclick = () => go(`#/sentences/run?mode=${mode}&topic=${topic}&n=${size}`);
+  $('#sentence-start', root).onclick = () => go(`#/sentences/run?mode=${mode}&story=${story}&n=${size}`);
   updateCount();
 }
 
@@ -70,8 +85,8 @@ function selectQuestions(pool, count, mode) {
 }
 
 export function renderRun(root, _, q) {
-  const mode = modeOf(q.mode), topic = topicOf(q.topic);
-  const pool = sentencePool(topic, q.ids ? q.ids.split(',') : null);
+  const mode = modeOf(q.mode), story = storyOf(q.story);
+  const pool = sentencePool(story, q.ids ? q.ids.split(',') : null);
   if (!pool.length) return go('#/sentences');
   const count = q.n === 'all' ? pool.length : Math.min(pool.length, ['10', '20'].includes(q.n) ? +q.n : 10);
   const questions = selectQuestions(pool, count, mode);
@@ -106,9 +121,11 @@ export function renderRun(root, _, q) {
     $('#sentence-score', root).textContent = `${index + 1}/${questions.length}`;
     $('#sentence-progress .bar span', root).style.width = `${index / questions.length * 100}%`;
     card.innerHTML = `
-      <div class="kind">${esc(SENTENCE_TOPICS[s.topic])} · ${esc(MODES[current.mode])}</div>
+      <div class="kind">${esc(MODES[current.mode])}</div>
+      <a class="muted small-note" href="#/story/${s.story}">${s.emoji} ${esc(s.title)}</a>
       <h2 class="sentence-prompt">${esc(current.mode === 'build' ? s.task : s.de)}</h2>
-      ${current.mode === 'build' ? `<div class="sentence-words"><div class="f-label">Deine Wörter · Reihenfolge und Grammatik ergänzt du</div><ul>${shuffle(s.words).map(w => `<li>${esc(w)}</li>`).join('')}</ul></div>` : '<p class="muted small-note">Übersetze ins Japanische. Verwende die höfliche Form.</p>'}
+      ${current.mode === 'build' ? `<div class="sentence-words"><div class="f-label">Deine Wörter · Reihenfolge und Grammatik ergänzt du</div><ul>${shuffle(s.words).map(w => `<li>${esc(w)}</li>`).join('')}</ul></div>` : '<p class="muted small-note">Übersetze ins Japanische. Verwende die Form aus der Geschichte.</p>'}
+      ${s.note ? '<button class="btn small ghost" id="sentence-hint" type="button">💡 Grammatik aus der Geschichte</button><div class="tip" id="sentence-grammar" hidden></div>' : ''}
       <form class="form" id="sentence-form">
         <label for="sentence-answer">Deine Antwort auf Romaji
           <textarea id="sentence-answer" rows="3" lang="ja-Latn" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Schreibe hier deinen Satz …" aria-describedby="sentence-input-hint" required></textarea>
@@ -121,6 +138,12 @@ export function renderRun(root, _, q) {
     const input = $('#sentence-answer', root);
     $('#sentence-form', root).onsubmit = e => { e.preventDefault(); check(); };
     $('#sentence-skip', root).onclick = () => check(true);
+    const hint = $('#sentence-hint', root);
+    if (hint) hint.onclick = () => {
+      $('#sentence-grammar', root).textContent = s.note;
+      $('#sentence-grammar', root).hidden = false;
+      hint.hidden = true;
+    };
     input.addEventListener('keydown', e => {
       if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault();
@@ -152,10 +175,10 @@ export function renderRun(root, _, q) {
       <div class="sentence-solution">
         <div class="f-label">Musterlösung</div>
         <div class="sentence-romaji">${esc(s.ro)}</div>
-        <div class="jp">${esc(s.jp)} ${speakBtn(s.jp)}</div>
+        <div class="jp">${esc(s.jp)} ${speakBtn(s.kana)}</div>
         <div>${esc(s.de)}</div>
       </div>
-      <div class="tip">${esc(s.note)}</div>
+      ${s.note ? `<div class="tip">${esc(s.note)}</div>` : ''}
       ${!correct && !skip ? `<p class="muted small-note">Andere Formulierungen sind möglich. Wenn dein Satz auch richtig ist, kannst du ihn selbst als richtig werten.</p><button class="btn wide" id="sentence-accept">Meine Antwort stimmt auch</button>` : ''}
       <button class="btn primary big" id="sentence-next">${index + 1 === questions.length ? 'Auswertung ansehen' : 'Nächster Satz'}</button>`;
     const accept = $('#sentence-accept', root);
@@ -190,11 +213,11 @@ export function renderRun(root, _, q) {
       <p>${right} von ${results.length} Sätzen richtig</p>
       ${missed.length ? `<div class="sub-title">Diese Sätze kannst du weiter üben</div><ul class="sentence-mistakes">${missed.map(r => `<li><b>${esc(r.sentence.de)}</b><div class="muted small-note">Deine Antwort: ${r.skipped ? 'Lösung aufgedeckt' : esc(r.answer)}</div><div class="sentence-romaji">${esc(r.sentence.ro)}</div></li>`).join('')}</ul>` : ''}
       <div class="row-btns col">
-        ${missed.length ? `<a class="btn primary" href="#/sentences/run?mode=${mode}&topic=${topic}&n=all&ids=${encodeURIComponent(missed.map(r => r.sentence.id).join(','))}">Fehler nochmal üben · ${missed.length}</a>` : ''}
+        ${missed.length ? `<a class="btn primary" href="#/sentences/run?mode=${mode}&story=${story}&n=all&ids=${encodeURIComponent(missed.map(r => r.sentence.id).join(','))}">Fehler nochmal üben · ${missed.length}</a>` : ''}
         <button class="btn ${missed.length ? '' : 'primary'}" id="sentence-again">Neue Runde</button>
         <a class="btn ghost" href="#/sentences">Fertig</a>
       </div>`;
-    $('#sentence-again', root).onclick = () => go(`#/sentences/run?mode=${mode}&topic=${topic}&n=${q.n === 'all' ? 'all' : count}`);
+    $('#sentence-again', root).onclick = () => go(`#/sentences/run?mode=${mode}&story=${story}&n=${q.n === 'all' ? 'all' : count}`);
     card.scrollIntoView({ block: 'start' });
   }
 

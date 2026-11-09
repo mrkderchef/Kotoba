@@ -106,7 +106,7 @@ export function renderOverview(root, _, q) {
       </a>
       <a class="card quiz-entry" href="#/sentences">
         <span class="cat-emoji">✍️</span>
-        <span class="cat-info"><b>Satztest</b><small>Sätze übersetzen oder selbst bilden – Antworten auf Romaji</small></span>
+        <span class="cat-info"><b>Satztest</b><small>Sätze aus deinen Geschichten mit gelernten Wörtern – auf Romaji</small></span>
         <span class="chev">›</span>
       </a>
       <input class="search" id="search" type="search" placeholder="Suchen: 駅, eki, Bahnhof …" autocomplete="off" autocapitalize="off">

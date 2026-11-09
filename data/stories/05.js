@@ -78,7 +78,7 @@ Zu Hause wurde Kanakuri trotzdem zum Vater des japanischen Marathons. Er half 19
 
 ! **〜から〜まで** = von … bis: 九時から五時まで. **一番** + Adjektiv = am …-sten: 一番好き = am liebsten.
 
-> マラソンは{九}時《じ》に{始まる|始まります|はじまります}。{一}時《じ》に{終わる|終わります|おわります}。 | Der Marathon beginnt um neun und endet um eins.
+> マラソンは{九|九|く}時《じ》に{始まる|始まります|はじまります}。{一}時《じ》に{終わる|終わります|おわります}。 | Der Marathon beginnt um neun und endet um eins.
 > {毎朝}{六}時《じ》に{起きる|起きます|おきます}。 | Jeden Morgen stehe ich um sechs auf.
 > {疲れる|疲れました|つかれました}。{少し}{休む|休みましょう|やすみましょう}。 | Ich bin müde. Lass uns kurz ausruhen.
 > {プール}で{泳ぐ|泳ぎます|およぎます}。 | Ich schwimme im Schwimmbad.
@@ -142,7 +142,7 @@ Langsam ändert sich etwas. Nach dem Tod einer jungen Werbeangestellten, die sic
 > {父}は{会社}に{勤める|勤めています|つとめています}。 | Mein Vater arbeitet bei einer Firma.
 > {母}は{病院}で{働く|働いています|はたらいています}。 | Meine Mutter arbeitet im Krankenhaus.
 > {仕事}は{忙しい}ですか。 | Ist die Arbeit stressig?
-> {はい}、{毎朝}{七}時《じ》から{毎晩}{九}時《じ》まで{働く|働きます|はたらきます}。 | Ja, jeden Tag von sieben Uhr morgens bis neun Uhr abends.
+> {はい}、{毎朝}{七|七|しち}時《じ》から{毎晩}{九|九|く}時《じ》まで{働く|働きます|はたらきます}。 | Ja, jeden Tag von sieben Uhr morgens bis neun Uhr abends.
 > {明日}は{休み}です。{暇}です。 | Morgen habe ich frei. Ich habe Zeit.
 > {夏休み}に{海}へ{行く|行きたい|いきたい}です。 | In den Sommerferien möchte ich ans Meer.
 > {毎週}{土曜日}は{休み}です。 | Jeden Samstag habe ich frei.
@@ -177,7 +177,7 @@ Sommerzeit gibt es in Japan übrigens nicht. Die amerikanischen Besatzer führte
 > {夕方}は{涼しい}です。 | Am frühen Abend ist es kühl.
 > {今晩}、{映画}を{見る|見ませんか|みませんか}。 | Wollen wir heute Abend einen Film sehen?
 > {晩}{十}時《じ》に{寝る|寝ます|ねます}。{早い}ですね！ | Ich gehe um zehn Uhr abends schlafen. Früh, oder?
-> {九}時《じ》{半}に{会う|会いましょう|あいましょう}。 | Treffen wir uns um halb zehn.
+> {九|九|く}時《じ》{半}に{会う|会いましょう|あいましょう}。 | Treffen wir uns um halb zehn.
 > {子供}の{時}、{よく}{遊ぶ|遊びました|あそびました}。{雨}の{時}は{家}にいました。 | Als Kind habe ich viel gespielt. Wenn es regnete, war ich zu Hause.
 > {ちょうど}{十}{二}時《じ》です。 | Es ist genau zwölf Uhr.`,
     quiz: [

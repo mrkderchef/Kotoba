@@ -24,7 +24,7 @@ Gegessen wird mit {箸} – oder ganz traditionell mit den Fingern. Ein Tabu: {�
 > {砂糖}を{十}{グラム}と{塩}を{少し}{入れる|入れます|いれます}。 | Man gibt 10 Gramm Zucker und etwas Salz dazu.
 > {肉}も{野菜}も{おいしい}です。 | Fleisch und Gemüse sind beide lecker.
 > {卵}の{料理}が{好き}です。 | Ich mag Eiergerichte.
-> {この}{食べ物}は{何}ですか。 | Was ist das für ein Essen?`,
+> {この}{食べ物}は{何|何|なん}ですか。 | Was ist das für ein Essen?`,
     quiz: [
       ['Wozu legte man Fisch ursprünglich in Reis?', 'Um ihn durch Gärung haltbar zu machen', 'Damit er süßer wird', 'Als Opfergabe', 'Um ihn warm zu halten'],
       ['Was beschleunigte im 17. Jahrhundert die Sushi-Herstellung?', 'Essig', 'Eis', 'Salzwasser', 'Feuer'],
@@ -55,7 +55,7 @@ Das Besondere: Viele Automaten verkaufen im Winter {熱い} und {冷たい} Dose
 > {紅茶}は{甘い}ですか。 | Ist der schwarze Tee süß?
 > {牛乳}を{コップ}に{入れる|入れます|いれます}。 | Ich gieße Milch ins Glas.
 > {この}{カップ}は{熱い}です。 | Diese Tasse ist heiß.
-> {好き}な{飲み物}は{何}ですか。 | Was ist dein Lieblingsgetränk?`,
+> {好き}な{飲み物}は{何|何|なん}ですか。 | Was ist dein Lieblingsgetränk?`,
     quiz: [
       ['Was erhielten Arbeiter an den Pyramiden als Teil ihres Lohns?', 'Bier', 'Wein', 'Milch', 'Kaffee'],
       ['Was legte das bayerische Reinheitsgebot 1516 fest?', 'Welche Zutaten ins Bier dürfen', 'Wann Bier getrunken werden darf', 'Dass Bier nur aus Weizen sein darf', 'Wie viel Bier ein Mensch trinken darf'],
