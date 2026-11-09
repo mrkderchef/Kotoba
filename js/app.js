@@ -10,6 +10,7 @@ import * as review from './views/review.js';
 import * as settings from './views/settings.js';
 import * as quiz from './views/quiz.js';
 import * as sentences from './views/sentences.js';
+import * as grammar from './views/grammar.js';
 import * as read from './views/read.js';
 import { refreshPush } from './push.js';
 
@@ -24,6 +25,9 @@ const ROUTES = [
   [/^story\/([\w-]+)$/, read.renderStory, 'read'],
   [/^practice$/, read.renderPractice, null, true],
   [/^words$/, read.renderWords, 'words'],
+  [/^grammar$/, grammar.render, 'grammar'],
+  [/^grammar\/practice$/, grammar.renderPractice, 'grammar', true],
+  [/^grammar\/([\w-]+)$/, grammar.renderRule, 'grammar'],
   // Legacy: der alte Karteikarten-Modus
   [/^legacy$/, home.render, 'legacy'],
   [/^kana(?:\/(h|k))?$/, kana.renderOverview, 'legacy'],

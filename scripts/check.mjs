@@ -7,6 +7,9 @@ import { STORIES } from '../data/stories.js';
 import { WORDS } from '../data/words.js';
 import { matchesSentence, sentencePool, sentenceKey, sentenceCatalog, buildSentenceCatalog, learnedSentenceWords, sentenceStories } from '../js/sentences.js';
 import { allStories, parseStory } from '../js/stories.js';
+import { GRAMMAR_RULES, GRAMMAR_GROUPS } from '../data/grammar.js';
+import { grammarRule, grammarTopic, grammarKey, grammarMatches, formulaQuestions, storyGrammarQuestions } from '../js/grammar.js';
+import { state, merge } from '../js/store.js';
 
 const root = new URL('../', import.meta.url);
 const pool = new Set(WORDS.map(w => w[0]));
@@ -95,6 +98,44 @@ assert.equal(sentences.find(s => s.jp === '店は九時に開きます。').ro, 
 assert.equal(sentences.find(s => s.jp === 'この食べ物は何ですか。').ro, 'kono tabemono wa nan desu ka.', 'Kontextlesung von 何ですか');
 assert.notEqual(sentenceKey(tea.id, 'translate'), sentenceKey(tea.id, 'build'), 'Getrennte Statistik der Modi');
 
+assert.equal(new Set(GRAMMAR_RULES.map(r => r.id)).size, GRAMMAR_RULES.length, 'Eindeutige Grammatik-Regeln');
+for (const r of GRAMMAR_RULES) {
+  assert(Object.hasOwn(GRAMMAR_GROUPS, r.group), `${r.id}: Grammatik-Gruppe`);
+  for (const field of ['label', 'kana', 'role', 'formula', 'explain', 'remember', 'question', 'caution']) assert(r[field]?.trim(), `${r.id}: ${field} fehlt`);
+  assert.equal(r.example.length, 2, `${r.id}: Romaji-Beispiel und Bedeutung`);
+  assert(grammarMatches(r.label.toUpperCase(), r), `${r.id}: Großschreibung`);
+  assert(!grammarMatches('', r) && !grammarMatches('keine ahnung', r), `${r.id}: falsche Eingabe`);
+}
+assert(grammarMatches('ha', grammarRule('wa')), 'Partikel-Schreibweise ha');
+assert(grammarMatches('wo', grammarRule('o')), 'Partikel-Schreibweise wo');
+assert(grammarMatches('MASENDESHITA', grammarRule('masen-deshita')), 'Verbendung ohne Wortabstand');
+assert(!grammarMatches('ni', grammarRule('no')), 'no / ni unterscheiden');
+assert(!grammarMatches('ga', grammarRule('wa')), 'wa / ga unterscheiden');
+assert(!grammarMatches('ishita', grammarRule('mashita')), 'mashita ist die vollständige Endung');
+assert(!grammarMatches('masen', grammarRule('masen-deshita')), 'Vergangenheit der Verneinung unterscheiden');
+assert.equal(grammarTopic('unbekannt'), 'all', 'Ungültiges Grammatik-Thema');
+assert.deepEqual(formulaQuestions('no-ni').map(q => q.rule), ['no', 'ni'], 'no / ni gezielt wiederholen');
+assert.deepEqual(formulaQuestions('wa-ga').map(q => q.rule), ['wa', 'ga'], 'wa / ga gezielt wiederholen');
+assert.equal(formulaQuestions('verbs').length, 4, 'Vier höfliche Verbformen');
+assert.equal(formulaQuestions('no').length, 1, 'Einzelne Formel wiederholen');
+assert.equal(storyGrammarQuestions().length, 0, 'Grammatik-Satzübungen folgen dem echten leeren Lernstand');
+const grammarExercises = storyGrammarQuestions('all', sentences);
+assert(grammarExercises.length > 100, 'Satzübungen aus dem vorhandenen Inhalt erzeugen');
+assert.equal(new Set(grammarExercises.map(q => q.id)).size, grammarExercises.length, 'Eindeutige Lücken-Aufgaben');
+for (const q of grammarExercises) {
+  assert(grammarRule(q.rule), `${q.id}: Regel fehlt`);
+  assert(matchesSentence(q.before + grammarRule(q.rule).label + q.after, q.sentence), `${q.id}: Lücke korrekt rekonstruieren`);
+}
+assert(storyGrammarQuestions('no-ni', sentences).every(q => ['no', 'ni'].includes(q.rule)), 'Satzübungen nach Thema filtern');
+const conjugationFixture = { id: 'fixture', ro: 'kinou benkyou shimashita. mizu o nomimasen deshita.', required: [] };
+const conjugations = storyGrammarQuestions('verbs', [conjugationFixture]);
+assert.deepEqual(conjugations.map(q => q.rule), ['mashita', 'masen-deshita'], 'Längste Endung und mehrere Verben erkennen');
+assert.equal(conjugations[0].before, 'kinou benkyou shi', 'shi bleibt als Verb-Stamm stehen');
+assert.equal(storyGrammarQuestions('particles', [{ id: 'word', ro: 'kawakami san no kaban desu.', required: [] }]).filter(q => ['wa', 'ka'].includes(q.rule)).length, 0, 'Partikeln innerhalb von Wörtern nicht abfragen');
+assert.equal(storyGrammarQuestions('ni', [{ id: 'choice', ro: 'koohii ni shimasu.', required: [] }]).length, 0, 'Spezialmuster ni shimasu gehört nicht zur Grundregel');
+const mergedGrammar = merge({ ...state, quiz: { [grammarKey('no')]: { mac: { r: 1, w: 2, t: 1 } } } }, { ...state, quiz: { [grammarKey('no')]: { phone: { r: 3, w: 1, t: 2 } } } });
+assert.deepEqual(Object.keys(mergedGrammar.quiz[grammarKey('no')]).sort(), ['mac', 'phone'], 'Grammatikprofil wird zwischen Geräten zusammengeführt');
+
 const worker = await readFile(new URL('sw.js', root), 'utf8');
 const context = { self: { addEventListener() {} } };
 vm.runInNewContext(`${worker}\nglobalThis.assets = CORE;`, context);
@@ -113,4 +154,4 @@ async function checkModule(url) {
   }
 }
 await checkModule(new URL('js/app.js', root));
-console.log(`OK: ${STORIES.length} Geschichten, ${WORDS.length} Wörter, ${sentences.length} dynamische Satzaufgaben, Lernstand-Filter, Romaji-Vergleich, Quiz-Daten und ${visited.size} Offline-Module geprüft.`);
+console.log(`OK: ${STORIES.length} Geschichten, ${WORDS.length} Wörter, ${sentences.length} Satzaufgaben, ${GRAMMAR_RULES.length} Grammatik-Regeln, ${grammarExercises.length} Grammatik-Lücken, Lernstand, Romaji, Sync und ${visited.size} Offline-Module geprüft.`);

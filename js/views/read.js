@@ -251,6 +251,7 @@ export function renderHome(root) {
           ? `<a class="btn primary big" href="#/practice">🔁 ${due.length} ${due.length === 1 ? 'Wort' : 'Wörter'} wiederholen</a>`
           : `<div class="done">✨ ${p.n ? 'Gerade nichts fällig – lies eine Geschichte!' : 'Lies deine erste Geschichte – danach kommen die Wörter hierher.'}</div>`}
         <a class="btn wide" href="#/sentences">✍️ Satztest · auf Romaji schreiben</a>
+        <a class="btn wide" href="#/grammar">🧩 Meine Grammatik · Formeln wiederholen</a>
       </section>
 
       <section class="card">

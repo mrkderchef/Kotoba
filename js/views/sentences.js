@@ -1,6 +1,7 @@
 import { matchesSentence, normalizeSentence, sentenceKey, sentencePool, sentenceCatalog, sentenceStories } from '../sentences.js';
 import { state, quizRecord, quizStats, bump, save } from '../store.js';
 import { nextStory, allStories } from '../stories.js';
+import { storyGrammarQuestions, grammarRule } from '../grammar.js';
 import { header, esc, $, go, bar, shuffle, speakBtn } from '../ui.js';
 
 const MODES = { translate: 'Übersetzen', build: 'Satz bilden', mix: 'Gemischt' };
@@ -26,6 +27,7 @@ export function renderStart(root, _, q = {}) {
         <p class="muted small-note">Du schreibst auf Romaji. Großschreibung, Leerzeichen und Satzzeichen sind egal. Lange Vokale bitte mitschreiben, zum Beispiel ou oder ō.</p>
         ${attempts ? `<p class="small-note">Bisher ${attempts} Sätze getestet · ${Math.round(right / attempts * 100)} % richtig</p>` : ''}
       </section>
+      <a class="card quiz-entry" href="#/grammar"><span class="cat-emoji">🧩</span><span class="cat-info"><b>Meine Grammatik</b><small>Formelblatt, Lernprofil und kurze Übungen für Partikeln & Verbendungen</small></span><span class="chev">›</span></a>
       ${pool.length ? `<section class="card form">
         <label for="sentence-mode">Aufgabe
           <select id="sentence-mode">${Object.entries(MODES).map(([id, label]) => `<option value="${id}">${label}</option>`).join('')}</select>
@@ -118,6 +120,7 @@ export function renderRun(root, _, q) {
     current = questions[index];
     checked = false;
     const s = current.sentence;
+    const rules = [...new Set(storyGrammarQuestions('all', [s]).map(q => q.rule))].map(grammarRule);
     $('#sentence-score', root).textContent = `${index + 1}/${questions.length}`;
     $('#sentence-progress .bar span', root).style.width = `${index / questions.length * 100}%`;
     card.innerHTML = `
@@ -126,6 +129,7 @@ export function renderRun(root, _, q) {
       <h2 class="sentence-prompt">${esc(current.mode === 'build' ? s.task : s.de)}</h2>
       ${current.mode === 'build' ? `<div class="sentence-words"><div class="f-label">Deine Wörter · Reihenfolge und Grammatik ergänzt du</div><ul>${shuffle(s.words).map(w => `<li>${esc(w)}</li>`).join('')}</ul></div>` : '<p class="muted small-note">Übersetze ins Japanische. Verwende die Form aus der Geschichte.</p>'}
       ${s.note ? '<button class="btn small ghost" id="sentence-hint" type="button">💡 Grammatik aus der Geschichte</button><div class="tip" id="sentence-grammar" hidden></div>' : ''}
+      ${rules.length ? `<details class="grammar-details sentence-formulas"><summary>🧩 Formelblatt für diesen Satz</summary>${rules.map(r => `<div class="grammar-inline-rule"><b>${esc(r.label)} · ${esc(r.role)}</b><div>${esc(r.formula)}</div><a href="#/grammar/${r.id}">Regel einzeln wiederholen ›</a></div>`).join('')}</details>` : ''}
       <form class="form" id="sentence-form">
         <label for="sentence-answer">Deine Antwort auf Romaji
           <textarea id="sentence-answer" rows="3" lang="ja-Latn" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Schreibe hier deinen Satz …" aria-describedby="sentence-input-hint" required></textarea>
