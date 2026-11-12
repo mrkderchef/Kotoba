@@ -1,5 +1,5 @@
 // Lesen: Geschichten mit eingewobenen Wörtern, Quiz danach, Wiederholung im Kontext.
-import { state, save, bump, today, streak } from '../store.js';
+import { state, local, saveLocal, save, bump, today, streak, saveWordSet, deleteWordSet } from '../store.js';
 import { schedule } from '../srs.js';
 import { STATUS_LABEL } from '../cards.js';
 import { speak, canSpeak } from '../speech.js';
@@ -7,7 +7,7 @@ import { hasKanji } from '../romaji.js';
 import { sentencePool } from '../sentences.js';
 import {
   allStories, storyById, storyWords, parseStory, renderInline, jpKana, jpRomaji, wordInfo, wordCard, wordId, wordStatus,
-  helpLevel, wordPool, knownWords, dueWords, contexts, isRead, markRead, nextStory, progress,
+  helpLevel, wordPool, knownWords, dueWords, contexts, isRead, markRead, nextStory, progress, wordSetChapters, wordSetWords,
 } from '../stories.js';
 import { greeting, heatmap } from './home.js';
 import { header, esc, $, go, toast, bar, shuffle, speakBtn } from '../ui.js';
@@ -384,17 +384,27 @@ export function renderStory(root, [id]) {
 
 // ---------- Wiederholen ----------
 export function renderPractice(root, _, q) {
-  const cram = !!q.free;
-  const pool = cram ? shuffle(knownWords()).slice(0, 15) : dueWords().slice(0, 80);
+  const isSet = q.chapters !== undefined;
+  const chapters = wordSetChapters((q.chapters || '').split(','));
+  const setBack = '#/words/sets';
+  const back = isSet ? setBack : '#/';
+  const setQuery = new URLSearchParams({ chapters: chapters.map(s => s.id).join(',') });
+  const cram = isSet || !!q.free;
+  const pool = isSet ? shuffle(wordSetWords(chapters.map(s => s.id))) : cram ? shuffle(knownWords()).slice(0, 15) : dueWords().slice(0, 80);
+  const sources = new Map();
+  for (const s of chapters) for (const w of storyWords(s)) if (!sources.has(w)) sources.set(w, s.id);
   root.innerHTML = `
     <header class="top session">
-      <a class="back" href="#/" aria-label="Beenden">✕</a>
-      <h1>${cram ? 'Freies Üben' : 'Wörter wiederholen'}</h1>
+      <a class="back" href="${back}" aria-label="Beenden">✕</a>
+      <h1>${isSet ? 'Kapitelset üben' : cram ? 'Freies Üben' : 'Wörter wiederholen'}</h1>
       <span></span>
     </header>
+    ${isSet && chapters.length ? `<p class="muted center small-note">Kapitel ${chapters.map(s => s.n).join(', ')} · ${pool.length} Wörter · freies Üben</p>` : ''}
     <main class="page review"></main>`;
   const main = $('main', root);
   root.addEventListener('click', e => {
+    const repeat = e.target.closest('[data-repeat-set]');
+    if (repeat) { e.preventDefault(); return go(repeat.getAttribute('href')); }
     const w = e.target.closest('.wchip');
     if (w) openSheet(root, w.dataset.w);
   });
@@ -403,16 +413,16 @@ export function renderPractice(root, _, q) {
     const known = knownWords().length;
     main.innerHTML = `<div class="card result">
       <div class="big-emoji">🍵</div>
-      <h2>Gerade nichts fällig</h2>
-      <p class="muted">${known ? 'Alle Wörter sind für heute erledigt.' : 'Lies zuerst eine Geschichte – danach landen ihre Wörter hier.'}</p>
+      <h2>${isSet ? 'Keine Kapitel ausgewählt' : 'Gerade nichts fällig'}</h2>
+      <p class="muted">${isSet ? 'Wähle mindestens ein Kapitel für dein Übungsset aus.' : known ? 'Alle Wörter sind für heute erledigt.' : 'Lies zuerst eine Geschichte – danach landen ihre Wörter hier.'}</p>
       <div class="row-btns col">
-        ${known >= 4 ? '<a class="btn" href="#/practice?free=1">Trotzdem üben (ohne Wertung)</a>' : ''}
-        <a class="btn primary" href="#/">Zur Übersicht</a>
+        ${!isSet && known >= 4 ? '<a class="btn" href="#/practice?free=1">Trotzdem üben (ohne Wertung)</a>' : ''}
+        <a class="btn primary" href="${back}">${isSet ? 'Kapitel auswählen' : 'Zur Übersicht'}</a>
       </div></div>`;
     return;
   }
 
-  return runQuiz(main, pool.map(w => wordQuestion(w)), {
+  return runQuiz(main, pool.map(w => wordQuestion(w, sources.get(w))), {
     cram,
     onDone({ first }) {
       const right = [...first.values()].filter(Boolean).length;
@@ -428,12 +438,139 @@ export function renderPractice(root, _, q) {
           ${!cram ? `<p class="muted">Morgen fällig: <b>${tomorrow}</b></p>` : ''}
           ${wrong.length ? `<div class="sub-title">Noch wackelig</div>${chips(wrong)}` : ''}
           <div class="row-btns col">
-            ${next ? `<a class="btn primary" href="#/story/${next.id}">Weiterlesen: ${next.emoji} ${esc(next.title)}</a>` : ''}
-            <a class="btn" href="#/">Fertig</a>
+            ${isSet ? `<a class="btn primary" data-repeat-set href="#/practice?${setQuery}">Set nochmal üben</a>` : next ? `<a class="btn primary" href="#/story/${next.id}">Weiterlesen: ${next.emoji} ${esc(next.title)}</a>` : ''}
+            <a class="btn" href="${back}">${isSet ? 'Zu den Kapitelsets' : 'Fertig'}</a>
           </div>
         </div>`;
     },
   });
+}
+
+// ---------- Kapitelsets ----------
+export function renderWordSets(root, _, q) {
+  const stories = allStories();
+  const saved = Object.entries(state.wordSets).filter(([, s]) => !s.del);
+  const requested = state.wordSets[q.set];
+  const draft = requested && !requested.del ? { ...requested, id: q.set } : local.wordSetDraft || {};
+  let editing = draft.id && state.wordSets[draft.id] && !state.wordSets[draft.id].del ? draft.id : '';
+  let selected = new Set(wordSetChapters(draft.chapters).map(s => s.id));
+  const chapterWords = new Map(stories.map(s => [s.id, storyWords(s)]));
+  const practiceLink = ids => `#/practice?${new URLSearchParams({ chapters: ids.join(',') })}`;
+
+  root.innerHTML = `
+    ${header('Kapitelsets', '#/words')}
+    <main class="page">
+      <section class="card">
+        <div class="card-title">Deine gespeicherten Sets</div>
+        ${saved.length ? `<ul class="saved-word-sets">${saved.map(([id, set]) => {
+          const chapters = wordSetChapters(set.chapters);
+          const words = wordSetWords(set.chapters);
+          return `<li>
+            <b>${esc(set.name)}</b>
+            <small class="muted">Kapitel ${chapters.map(s => s.n).join(', ')} · ${words.length} Wörter</small>
+            <div class="row-btns">
+              <a class="btn primary small" href="${practiceLink(chapters.map(s => s.id))}" ${words.length ? '' : 'aria-disabled="true"'}>Üben</a>
+              <a class="btn small" href="#/words/sets?set=${encodeURIComponent(id)}">Bearbeiten</a>
+              <button class="btn small ghost" data-delete-set="${esc(id)}" aria-label="Set ${esc(set.name)} löschen">Löschen</button>
+            </div>
+          </li>`;
+        }).join('')}</ul>` : '<p class="muted">Noch keine Sets gespeichert. Wähle unten deine Kapitel aus.</p>'}
+      </section>
+
+      <form class="card form" id="word-set-form">
+        <div class="word-set-heading"><h2 id="word-set-title">${editing ? 'Set bearbeiten' : 'Set zusammenstellen'}</h2><button class="btn small ghost" type="button" id="new-word-set">Neues Set</button></div>
+        <p class="muted small-note">Kombiniere beliebige Geschichten als Kapitelset. Alle enthaltenen Wörter werden geübt, auch noch ungelernte. Doppelte Wörter kommen nur einmal vor.</p>
+        <label>Name des Sets <small class="muted">(optional)</small><input id="word-set-name" maxlength="80" value="${esc(draft.name || '')}" placeholder="z. B. Kapitel 15–17"></label>
+        <fieldset class="word-set-fieldset">
+          <legend>Kapitel auswählen</legend>
+          <div class="row-btns word-set-tools">
+            <button type="button" class="btn small" id="select-all-chapters">Alle auswählen</button>
+            <button type="button" class="btn small ghost" id="clear-chapters">Auswahl leeren</button>
+          </div>
+          <div class="chapter-picker">${stories.map(s => `<label class="chapter-choice">
+            <input type="checkbox" name="chapter" value="${s.id}" ${selected.has(s.id) ? 'checked' : ''}>
+            <span><b>${s.n}. ${s.emoji} ${esc(s.title)}</b><small>${chapterWords.get(s.id).length} Wörter${isRead(s.id) ? ' · ✓ gelesen' : ''}</small></span>
+          </label>`).join('')}</div>
+        </fieldset>
+        <p id="word-set-summary" class="word-set-summary" role="status"></p>
+        <div class="row-btns">
+          <button class="btn primary" type="button" id="practice-word-set">Auswahl üben</button>
+          <button class="btn" type="submit" id="save-word-set">${editing ? 'Änderungen speichern' : 'Set speichern'}</button>
+        </div>
+        <p class="muted small-note">Freies Üben: Dein täglicher Wiederholungsplan bleibt unverändert.</p>
+        <details id="word-set-preview"><summary>Wörter im Set ansehen</summary><ul class="words" id="word-set-words"></ul></details>
+      </form>
+    </main>`;
+
+  const form = $('#word-set-form', root);
+  const name = $('#word-set-name', root);
+  const preview = $('#word-set-preview', root);
+  const ids = () => wordSetChapters([...selected]).map(s => s.id);
+  const remember = () => {
+    local.wordSetDraft = { id: editing, name: name.value, chapters: ids() };
+    saveLocal();
+  };
+  function update() {
+    const chapters = wordSetChapters([...selected]);
+    const words = wordSetWords(ids());
+    $('#word-set-summary', root).textContent = chapters.length
+      ? `Kapitel ${chapters.map(s => s.n).join(', ')} · ${words.length} ${words.length === 1 ? 'Wort' : 'Wörter'}`
+      : 'Wähle mindestens ein Kapitel aus.';
+    $('#practice-word-set', root).disabled = !words.length;
+    $('#save-word-set', root).disabled = !words.length;
+    preview.hidden = !words.length;
+    // Lange Wortlisten erst auf Wunsch aufbauen.
+    if (preview.open) $('#word-set-words', root).innerHTML = words.map(wordRow).join('');
+    remember();
+  }
+  form.addEventListener('change', e => {
+    if (e.target.name !== 'chapter') return;
+    e.target.checked ? selected.add(e.target.value) : selected.delete(e.target.value);
+    update();
+  });
+  name.addEventListener('input', remember);
+  preview.addEventListener('toggle', () => {
+    if (preview.open) $('#word-set-words', root).innerHTML = wordSetWords(ids()).map(wordRow).join('');
+  });
+  function selectAll(on) {
+    selected = new Set(on ? stories.map(s => s.id) : []);
+    form.querySelectorAll('[name="chapter"]').forEach(el => { el.checked = on; });
+    update();
+  }
+  $('#select-all-chapters', root).onclick = () => selectAll(true);
+  $('#clear-chapters', root).onclick = () => selectAll(false);
+  $('#new-word-set', root).onclick = () => {
+    local.wordSetDraft = {};
+    saveLocal();
+    go('#/words/sets');
+  };
+  $('#practice-word-set', root).onclick = () => {
+    if (wordSetWords(ids()).length) { remember(); go(practiceLink(ids())); }
+  };
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    if (!wordSetWords(ids()).length) return;
+    const title = name.value.trim() || `Kapitel ${wordSetChapters(ids()).map(s => s.n).join(', ')}`;
+    editing = saveWordSet(editing, title, ids());
+    name.value = title;
+    remember();
+    toast('Set gespeichert');
+    go('#/words/sets');
+  });
+  root.addEventListener('click', e => {
+    if (e.target.closest('[data-speak]')) return;
+    const del = e.target.closest('[data-delete-set]');
+    if (del) {
+      if (!confirm('Dieses Kapitelset löschen?')) return;
+      deleteWordSet(del.dataset.deleteSet);
+      if (del.dataset.deleteSet === editing) { local.wordSetDraft = {}; saveLocal(); }
+      toast('Set gelöscht');
+      return go('#/words/sets');
+    }
+    const w = e.target.closest('[data-w]');
+    if (w) openSheet(root, w.dataset.w);
+  });
+  update();
 }
 
 // ---------- Wörterliste ----------
@@ -459,6 +596,11 @@ export function renderWords(root) {
           <a class="btn" href="#/practice?free=1" ${known.length >= 4 ? '' : 'aria-disabled="true"'}>Frei üben</a>
         </div>
       </section>
+      <a class="card quiz-entry" href="#/words/sets">
+        <span class="cat-emoji">📚</span>
+        <span class="cat-info"><b>Kapitelsets</b><small>Kapitel kombinieren, Sets speichern und gezielt Wörter üben</small></span>
+        <span class="chev">›</span>
+      </a>
       <p class="muted small-note legend">
         <span class="st st-learning">Lernen</span> mit Übersetzung im Text ·
         <span class="st st-young">Gelernt</span> nur Lesung ·

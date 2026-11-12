@@ -18,7 +18,7 @@ function uid() {
 }
 
 function emptyState() {
-  return { v: 1, srs: {}, kana: {}, quiz: {}, push: {}, sections: {}, custom: {}, daily: {}, decks: {}, read: {}, settings: { ...DEFAULT_SETTINGS } };
+  return { v: 1, srs: {}, kana: {}, quiz: {}, push: {}, sections: {}, custom: {}, wordSets: {}, daily: {}, decks: {}, read: {}, settings: { ...DEFAULT_SETTINGS } };
 }
 
 function readJSON(key, fallback) {
@@ -223,6 +223,18 @@ export function deleteCustom(id) {
   state.custom[id] = { del: true, u: Date.now() };
 }
 
+// ---------- Gespeicherte Kapitelsets ----------
+export function saveWordSet(id, name, chapters) {
+  id ||= uid();
+  state.wordSets[id] = { name, chapters: [...new Set(chapters)], u: Date.now() };
+  save();
+  return id;
+}
+export function deleteWordSet(id) {
+  state.wordSets[id] = { del: true, u: Date.now() };
+  save();
+}
+
 // ---------- Zusammenführen (Sync) ----------
 function lww(a = {}, b = {}) {
   const out = { ...a };
@@ -251,6 +263,7 @@ export function merge(a, b) {
     kana: perDevice(a.kana, b.kana, v => v.r + v.w),
     sections,
     custom: lww(a.custom, b.custom),
+    wordSets: lww(a.wordSets, b.wordSets),
     daily: perDevice(a.daily, b.daily, sum),
     quiz: perDevice(a.quiz, b.quiz, v => v.r + v.w),
     decks: lww(a.decks, b.decks),

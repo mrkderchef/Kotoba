@@ -6,7 +6,7 @@ import vm from 'node:vm';
 import { STORIES } from '../data/stories.js';
 import { WORDS } from '../data/words.js';
 import { matchesSentence, sentencePool, sentenceKey, sentenceCatalog, buildSentenceCatalog, learnedSentenceWords, sentenceStories } from '../js/sentences.js';
-import { allStories, parseStory } from '../js/stories.js';
+import { allStories, parseStory, storyWords, wordSetChapters, wordSetWords } from '../js/stories.js';
 import { GRAMMAR_RULES, GRAMMAR_GROUPS } from '../data/grammar.js';
 import { grammarRule, grammarTopic, grammarKey, grammarMatches, formulaQuestions, storyGrammarQuestions } from '../js/grammar.js';
 import { state, merge } from '../js/store.js';
@@ -34,6 +34,25 @@ for (const s of STORIES) {
     assert.equal(new Set(q.slice(1)).size, 4, `${s.id}: doppelte Quiz-Antwort`);
   }
 }
+
+// Kapitelsets enthalten alle Wörter der gewählten Geschichten, auch ohne Lernstand.
+const setChapters = allStories().slice(14, 17);
+const setIds = setChapters.map(s => s.id);
+const setWords = wordSetWords([setIds[1], setIds[0], setIds[2], setIds[1], 'unbekannt']);
+assert.deepEqual(wordSetChapters([setIds[1], setIds[0], setIds[2], setIds[1], 'unbekannt']), setChapters, 'Kapitel 15–17 in Bibliotheksreihenfolge und ohne Duplikate');
+assert.deepEqual(setWords, [...new Set(setChapters.flatMap(storyWords))], 'Genau die Wörter aller gewählten Kapitel');
+assert(setWords.length > 15, 'Kapitelset darf nicht auf die 15 Wörter des freien Übens begrenzt sein');
+assert.deepEqual(wordSetWords([]), [], 'Leere Kapitelauswahl');
+assert.deepEqual(wordSetWords(['unbekannt']), [], 'Unbekannte Kapitel');
+assert.deepEqual(wordSetWords([setIds[0]]), storyWords(setChapters[0]), 'Einzelnes Kapitel');
+assert.deepEqual(wordSetWords(allStories().map(s => s.id)), [...new Set(allStories().flatMap(storyWords))], 'Alle Kapitel kombinieren ohne Wörter zu verlieren oder zu verdoppeln');
+const oldSet = { name: 'Kapitel 15–17', chapters: setIds, u: 1 };
+const changedSet = { ...oldSet, name: 'Mein Set', u: 2 };
+const deletedSet = { del: true, u: 3 };
+assert.deepEqual(merge({ wordSets: { test: oldSet } }, { wordSets: { test: changedSet } }).wordSets.test, changedSet, 'Neuere Set-Bearbeitung gewinnt beim Sync');
+assert.deepEqual(merge({ wordSets: { test: deletedSet } }, { wordSets: { test: oldSet } }).wordSets.test, deletedSet, 'Gelöschtes Set bleibt nach Sync gelöscht');
+assert.deepEqual(merge({}, { wordSets: { test: oldSet } }).wordSets.test, oldSet, 'Alte Backups ohne Kapitelsets werden unterstützt');
+assert.deepEqual(merge({ wordSets: { a: oldSet } }, { wordSets: { b: changedSet } }).wordSets, { a: oldSet, b: changedSet }, 'Sets verschiedener Geräte bleiben erhalten');
 
 const sentences = sentenceCatalog();
 const sourceLines = allStories().flatMap(story => parseStory(story.text).flatMap(block => block.t === 'jp' ? block.lines : []));
@@ -154,4 +173,4 @@ async function checkModule(url) {
   }
 }
 await checkModule(new URL('js/app.js', root));
-console.log(`OK: ${STORIES.length} Geschichten, ${WORDS.length} Wörter, ${sentences.length} Satzaufgaben, ${GRAMMAR_RULES.length} Grammatik-Regeln, ${grammarExercises.length} Grammatik-Lücken, Lernstand, Romaji, Sync und ${visited.size} Offline-Module geprüft.`);
+console.log(`OK: ${STORIES.length} Geschichten, ${WORDS.length} Wörter, Kapitelsets, ${sentences.length} Satzaufgaben, ${GRAMMAR_RULES.length} Grammatik-Regeln, ${grammarExercises.length} Grammatik-Lücken, Lernstand, Romaji, Sync und ${visited.size} Offline-Module geprüft.`);

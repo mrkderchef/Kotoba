@@ -25,6 +25,7 @@ const ROUTES = [
   [/^story\/([\w-]+)$/, read.renderStory, 'read'],
   [/^practice$/, read.renderPractice, null, true],
   [/^words$/, read.renderWords, 'words'],
+  [/^words\/sets$/, read.renderWordSets, 'words'],
   [/^grammar$/, grammar.render, 'grammar'],
   [/^grammar\/practice$/, grammar.renderPractice, 'grammar', true],
   [/^grammar\/([\w-]+)$/, grammar.renderRule, 'grammar'],

@@ -17,6 +17,7 @@ Geschichten über Allgemeinwissen – Philosophie, Geschichte, Natur, Geographie
 - **52 Geschichten** in der Bibliothek (`data/stories/`, eingebunden über `data/stories.js`), ab Geschichte 5 mit echten japanischen Sätzen und kleinen Grammatik-Häppchen (は/です, の, あります, を/ます, ません, ました, か, から).
 - **Nach jeder Geschichte ein Mini-Quiz**: neue und fällige Wörter + 3 Wissensfragen. Danach sind die Wörter in der Wiederholung (Spaced Repetition), abgefragt im Satz-Kontext der Geschichte.
 - Wörter antippen → Details, Aussprache, alle Fundstellen. Wer beim Lesen ein „gelerntes“ Wort nachschaut, bekommt es heute nochmal in der Wiederholung.
+- **Wörter → Kapitelsets:** Beliebige Geschichten zu einem benannten Übungsset kombinieren (z. B. Kapitel 15, 16 und 17), speichern, bearbeiten und wiederholt üben. Alle enthaltenen Wörter kommen dran, auch ungelernte; doppelte Wörter nur einmal. Fehler werden in der Runde wiederholt. Sets werden mit synchronisiert und im Backup gesichert; das freie Üben verändert den Wiederholungsplan nicht.
 
 ### 🗂️ Legacy
 

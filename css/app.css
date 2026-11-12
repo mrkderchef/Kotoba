@@ -512,6 +512,28 @@ ruby rt { font-size: .55em; color: var(--muted); font-weight: 400; }
 .sword .w-jp .w { font-size: 1.25rem; white-space: nowrap; }
 .legend { text-align: center; line-height: 2; }
 
+/* Kapitelsets */
+.saved-word-sets { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.saved-word-sets li + li { border-top: 1px solid var(--line); padding-top: 14px; }
+.saved-word-sets b, .saved-word-sets small { display: block; overflow-wrap: anywhere; }
+.word-set-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.word-set-heading h2 { font-size: 1.1rem; }
+.word-set-heading .btn { flex: none; }
+.word-set-fieldset { min-width: 0; border: 0; padding: 0; margin: 0; }
+.word-set-fieldset legend { font-weight: 650; }
+.word-set-tools { margin: 8px 0; }
+.chapter-picker { max-height: 370px; overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--line); border-radius: 14px; }
+.form .chapter-choice { display: flex; flex-direction: row; align-items: center; gap: 12px; padding: 12px; cursor: pointer; }
+.chapter-choice + .chapter-choice { border-top: 1px solid var(--line); }
+.chapter-choice:has(input:checked) { background: var(--accent-soft); }
+.form .chapter-choice input { width: 20px; height: 20px; padding: 0; flex: none; margin: 0; accent-color: var(--accent); }
+.chapter-choice input:focus-visible { outline: 2px solid var(--indigo); outline-offset: 3px; }
+.chapter-choice span { min-width: 0; }
+.chapter-choice b, .chapter-choice small { display: block; }
+.chapter-choice small { color: var(--muted); font-weight: 400; }
+.word-set-summary { font-weight: 650; overflow-wrap: anywhere; }
+#word-set-preview summary { cursor: pointer; min-height: 44px; padding: 10px 0; }
+
 /* Wort-Blatt */
 .sheet-bg { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, .35); display: flex; align-items: flex-end; justify-content: center; animation: fade .15s ease; }
 .sheet { width: 100%; max-width: 560px; max-height: 85dvh; overflow: auto; border-radius: 22px 22px 0 0; padding: 20px 18px calc(20px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; position: relative; }

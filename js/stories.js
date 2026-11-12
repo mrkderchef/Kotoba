@@ -73,6 +73,15 @@ export function storyWords(story) {
   return out;
 }
 
+// Kapitel in Bibliotheksreihenfolge; unbekannte IDs ignorieren, Wörter nur einmal.
+export function wordSetChapters(ids = []) {
+  const selected = new Set(ids);
+  return allStories().filter(s => selected.has(s.id));
+}
+export function wordSetWords(ids = []) {
+  return [...new Set(wordSetChapters(ids).flatMap(storyWords))];
+}
+
 // opts: { seen: Set (erste Erwähnung bekommt Emoji + Übersetzung), jp: im japanischen Satz, target: Wort hervorheben, noGloss }
 export function renderInline(src, opts = {}) {
   const seen = opts.seen || new Set();
