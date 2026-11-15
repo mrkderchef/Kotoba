@@ -508,6 +508,24 @@ ruby rt { font-size: .55em; color: var(--muted); font-weight: 400; }
 .jpl-jp { font-size: 1.3rem; line-height: 2.1; }
 .jpl-de { font-size: .92rem; line-height: 1.5; padding-bottom: 4px; animation: fade .2s ease; }
 .jpl-de i { display: block; color: var(--indigo); font-style: normal; font-size: .85rem; }
+.word-parts { text-align: left; margin: 16px 0; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface-2); min-width: 0; }
+.word-parts h3 { margin: 0 0 12px; font-size: 1rem; }
+.word-parts summary { cursor: pointer; font-weight: 650; padding: 4px 0; }
+.word-parts-chars { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(90px, 100%), 1fr)); gap: 8px; list-style: none; padding: 0; margin: 12px 0; }
+.word-parts-chars li { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; padding: 10px 6px; border-radius: 10px; background: var(--surface); min-width: 0; }
+.part-char { font-size: 2rem; line-height: 1.3; }
+.word-parts-chars small { color: var(--muted); font-size: .7rem; }
+.part-meaning { font-size: .85rem; line-height: 1.4; overflow-wrap: anywhere; }
+.word-parts-chunks { margin-top: 14px; font-size: .9rem; }
+.word-parts-chunks ul { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-wrap: wrap; gap: 22px; }
+.word-parts-chunks li { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 10px; background: var(--surface); }
+.word-parts-chunks li + li::before { content: '+'; position: absolute; left: -17px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+.word-parts-chunks .jp { font-size: 1.15rem; }
+.word-parts-chunks small.jp, .word-parts-chunks .jp small { font-size: .8rem; }
+.word-parts-result { margin: 12px 0 6px; line-height: 1.5; overflow-wrap: anywhere; }
+.word-parts-note { margin: 0; font-size: .8rem; line-height: 1.5; color: var(--muted); }
+.word > .word-parts { grid-column: 1 / -1; margin: 0; padding: 8px; }
+.sheet > .word-parts { width: 100%; }
 .sword { cursor: pointer; }
 .sword .w-jp .w { font-size: 1.25rem; white-space: nowrap; }
 .legend { text-align: center; line-height: 2; }

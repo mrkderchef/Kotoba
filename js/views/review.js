@@ -5,6 +5,7 @@ import { VOCAB } from '../../data/vocab.js';
 import { SITUATIONS } from '../../data/phrases.js';
 import { speak } from '../speech.js';
 import { hasKanji } from '../romaji.js';
+import { wordPartsHtml } from '../word-parts.js';
 import { esc, $, go, speakBtn } from '../ui.js';
 
 const NEW_FIELD = { vocab: 'nv', custom: 'nv', kanji: 'nk', phrase: 'np' };
@@ -29,6 +30,7 @@ export function back(card) {
   const { item, dir } = card;
   const ro = state.settings.showRomaji ? `<div class="b-ro">${esc(item.ro)}</div>` : '';
   const note = item.note ? `<div class="note">${esc(item.note)}</div>` : '';
+  const parts = item.kind === 'phrase' || item.kind === 'kanji' ? '' : wordPartsHtml(item, { collapsible: true });
   if (item.kind === 'kanji') {
     return `<div class="b-de">${esc(item.de)}</div>
       <div class="readings big">
@@ -39,10 +41,10 @@ export function back(card) {
   }
   if (dir === 'dj') {
     return `<div class="b-jp jp">${esc(item.w)} ${speakBtn(item.k)}</div>
-      ${item.k !== item.w ? `<div class="b-kana jp">${esc(item.k)}</div>` : ''}${ro}${note}`;
+      ${item.k !== item.w ? `<div class="b-kana jp">${esc(item.k)}</div>` : ''}${ro}${note}${parts}`;
   }
   return `${item.k !== item.w ? `<div class="b-kana jp">${esc(item.k)} ${speakBtn(item.k)}</div>` : `<div>${speakBtn(item.k)}</div>`}
-    ${ro}<div class="b-de">${esc(item.de)}</div>${note}`;
+    ${ro}<div class="b-de">${esc(item.de)}</div>${note}${parts}`;
 }
 
 function session(root, queue, { cram = false, title = '', exit = '#/legacy', kinds = [] } = {}) {
@@ -157,6 +159,7 @@ function session(root, queue, { cram = false, title = '', exit = '#/legacy', kin
 
   const onKey = e => {
     if (e.metaKey || e.ctrlKey || e.altKey) { if ((e.metaKey || e.ctrlKey) && e.key === 'z') { e.preventDefault(); doUndo(); } return; }
+    if ((e.key === ' ' || e.key === 'Enter') && e.target.closest?.('summary')) return;
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); revealed ? grade(3) : reveal(); }
     else if (/^[1-4]$/.test(e.key) && revealed) { const g = +e.key; if (!cram || g === 1 || g === 3) grade(g); }
     else if (e.key === 'z') doUndo();

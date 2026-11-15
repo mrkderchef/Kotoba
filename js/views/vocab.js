@@ -1,5 +1,6 @@
 import { state, local, saveLocal, save, deckOn, setDeck, addCustom, deleteCustom } from '../store.js';
 import { VOCAB } from '../../data/vocab.js';
+import { wordPartsHtml } from '../word-parts.js';
 import { vocabItems, kanjiItems, customItems, itemStatus, STATUS_LABEL } from '../cards.js';
 import { counts } from '../srs.js';
 import { learnedPool } from './quiz.js';
@@ -17,6 +18,7 @@ export function wordRow(item) {
     <div class="w-jp"><span class="jp w">${esc(item.w)}</span>${showKana ? `<span class="jp k">${esc(item.k)}</span>` : ''}</div>
     <div class="w-de">${esc(item.de)}${romajiHtml(item.ro)}${item.note ? `<div class="note">${esc(item.note)}</div>` : ''}</div>
     <div class="w-side">${statusBadge(item)}${speakBtn(item.k)}</div>
+    ${wordPartsHtml(item, { collapsible: true })}
   </li>`;
 }
 

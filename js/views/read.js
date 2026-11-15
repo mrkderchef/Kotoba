@@ -4,6 +4,7 @@ import { schedule } from '../srs.js';
 import { STATUS_LABEL } from '../cards.js';
 import { speak, canSpeak } from '../speech.js';
 import { hasKanji } from '../romaji.js';
+import { wordPartsHtml } from '../word-parts.js';
 import { sentencePool } from '../sentences.js';
 import {
   allStories, storyById, storyWords, parseStory, renderInline, jpKana, jpRomaji, wordInfo, wordCard, wordId, wordStatus,
@@ -29,7 +30,7 @@ function wordCardHtml(x) {
       ${x.note ? `<div class="note">${esc(x.note)}</div>` : ''}
     </div>
     ${speakBtn(x.k)}
-  </div>`;
+  </div>${wordPartsHtml(x, { collapsible: true })}`;
 }
 
 function ctxHtml(c, w, blank = false) {
@@ -71,6 +72,7 @@ function openSheet(root, w) {
     ${state.settings.showRomaji ? `<div class="ro big-ro">${esc(x.ro)}</div>` : ''}
     <div class="sh-de">${esc(x.de)}</div>
     ${speakBtn(x.k, 'big')}
+    ${wordPartsHtml(x)}
     ${x.note ? `<div class="tip">💡 ${esc(x.note)}</div>` : ''}
     <div class="sh-st"><span class="st st-${st}">${STATUS_LABEL[st]}</span>${wordCard(w) ? ` <small class="muted">nächste Wiederholung ${dueLabel(wordCard(w).d)}</small>` : ''}</div>
     ${cs.length ? `<div class="sub-title">In deinen Geschichten</div>${cs.map(c => ctxHtml(c, w)).join('')}` : ''}
@@ -208,6 +210,7 @@ function runQuiz(host, questions, { onDone, cram = false }) {
   $('.qz-next', host).onclick = show;
   const onKey = e => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if ((e.key === ' ' || e.key === 'Enter') && e.target.closest?.('summary')) return;
     if (/^[1-4]$/.test(e.key)) answer(+e.key - 1);
     else if ((e.key === ' ' || e.key === 'Enter') && done) { e.preventDefault(); show(); }
     else if (e.key === 'r' && cur?.kind === 'word') speak(wordInfo(cur.w).k);

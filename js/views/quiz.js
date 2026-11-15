@@ -189,6 +189,7 @@ export function renderRun(root, _, q) {
   el.card.addEventListener('click', e => { if (!e.target.closest('button')) reveal(); });
   const onKey = e => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if ((e.key === ' ' || e.key === 'Enter') && e.target.closest?.('summary')) return;
     if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); revealed ? grade(1) : reveal(); }
     else if (revealed && /^[1-3]$/.test(e.key)) grade(GRADES[+e.key - 1].s);
     else if (e.key === 'r' && cur) speak(cur.item.k);

@@ -5,6 +5,9 @@ import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import { STORIES } from '../data/stories.js';
 import { WORDS } from '../data/words.js';
+import { VOCAB } from '../data/vocab.js';
+import { WORD_PARTS } from '../data/kanji-parts.js';
+import { wordParts, wordPartsHtml } from '../js/word-parts.js';
 import { matchesSentence, sentencePool, sentenceKey, sentenceCatalog, buildSentenceCatalog, learnedSentenceWords, sentenceStories } from '../js/sentences.js';
 import { allStories, parseStory, storyWords, wordSetChapters, wordSetWords } from '../js/stories.js';
 import { GRAMMAR_RULES, GRAMMAR_GROUPS } from '../data/grammar.js';
@@ -13,6 +16,34 @@ import { state, merge } from '../js/store.js';
 
 const root = new URL('../', import.meta.url);
 const pool = new Set(WORDS.map(w => w[0]));
+// Every shipped word must be reconstructible, with meanings for all its kanji.
+for (const [w, k, de] of [...WORDS, ...VOCAB.flatMap(c => c.words)]) {
+  const parts = wordParts(w);
+  assert.equal(parts.map(p => p.char).join(''), w, `${w}: Zeichenfolge vollständig und in Reihenfolge`);
+  assert(parts.every(p => p.meaning && p.meaning !== 'Bedeutung noch nicht hinterlegt'), `${w}: Zeichenbedeutung fehlt`);
+  assert(wordPartsHtml({ w, k, de }).includes('Zeichen & Wortbausteine'), `${w}: Erklärung verfügbar`);
+  const chunks = WORD_PARTS[w];
+  if (chunks) {
+    assert.equal(chunks.map(p => p[0]).join(''), w, `${w}: Wortbausteine ergeben das Wort`);
+    assert.equal(chunks.map(p => p[1]).join(''), k, `${w}: Bausteinlesungen ergeben die Wortlesung`);
+  }
+}
+assert.deepEqual(wordParts('朝ご飯').map(p => p.kind), ['Kanji', 'Hiragana', 'Kanji'], 'Frühstück hat zwei Kanji und ein Hiragana');
+assert.deepEqual(WORD_PARTS['朝ご飯'].map(p => p[0]), ['朝', 'ご飯'], 'Frühstück besteht aus Morgen und Mahlzeit');
+assert.equal(wordParts('おいしい')[0].meaning, 'Lautschrift', 'お ist nicht immer eine höfliche Vorsilbe');
+assert.equal(wordParts('お茶')[0].meaning, 'höfliche Vorsilbe', 'Höfliches お in お茶');
+assert.deepEqual(wordParts('日曜日').map(p => p.char), ['日', '曜', '日'], 'Wiederholte Kanji bleiben erhalten');
+assert.equal(wordParts('時々')[1].meaning, 'wiederholt 時', 'Wiederholungszeichen erklären');
+assert.equal(wordParts('コーヒー')[1].kind, 'Längenzeichen', 'Katakana-Vokallänge erklären');
+assert.equal(wordParts('𠮷')[0].meaning, 'Bedeutung noch nicht hinterlegt', 'Unbekannte eigene Kanji nicht mit erfundener Bedeutung versehen');
+assert.equal(wordParts('𠮷').length, 1, 'Unicode-Zeichen außerhalb der BMP erhalten');
+assert(!WORD_PARTS['今日'], 'Keine erfundene Aufteilung unregelmäßiger Lesungen');
+assert(wordPartsHtml({ w: '今日', de: 'heute' }).includes('gehört zum ganzen Wort'), 'Hinweis zur unregelmäßigen Lesung');
+assert(!wordPartsHtml({ w: '<img>', de: '<script>' }).includes('<script>'), 'Eigene Wörter und Übersetzungen escapen');
+const oldRomaji = state.settings.showRomaji;
+state.settings.showRomaji = false;
+assert(!wordPartsHtml({ w: '朝ご飯', de: 'Frühstück' }).includes('class="ro"'), 'Keine Baustein-Romaji bei deaktivierter Anzeige');
+state.settings.showRomaji = oldRomaji;
 assert.equal(pool.size, WORDS.length, 'Doppelte Wörter');
 assert.equal(new Set(STORIES.map(s => s.id)).size, STORIES.length, 'Doppelte Geschichten-IDs');
 for (const file of await readdir(new URL('data/stories/', root))) {

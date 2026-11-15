@@ -1,5 +1,5 @@
 // Offline-Unterstützung: Netzwerk zuerst (immer aktuell), bei Funkloch aus dem Cache.
-const CACHE = 'kotoba-v9';
+const CACHE = 'kotoba-v10';
 const CORE = [
   './',
   './index.html',
@@ -18,6 +18,7 @@ const CORE = [
   './js/stories.js',
   './js/sync.js',
   './js/ui.js',
+  './js/word-parts.js',
   './js/views/home.js',
   './js/views/grammar.js',
   './js/views/kana.js',
@@ -29,6 +30,7 @@ const CORE = [
   './js/views/settings.js',
   './js/views/vocab.js',
   './data/kana.js',
+  './data/kanji-parts.js',
   './data/grammar.js',
   './data/phrases.js',
   './data/stories/01.js',
