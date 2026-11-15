@@ -11,6 +11,7 @@ import * as settings from './views/settings.js';
 import * as quiz from './views/quiz.js';
 import * as sentences from './views/sentences.js';
 import * as grammar from './views/grammar.js';
+import * as grammarLessons from './views/grammar-lessons.js';
 import * as read from './views/read.js';
 import { refreshPush } from './push.js';
 
@@ -26,7 +27,10 @@ const ROUTES = [
   [/^practice$/, read.renderPractice, null, true],
   [/^words$/, read.renderWords, 'words'],
   [/^words\/sets$/, read.renderWordSets, 'words'],
-  [/^grammar$/, grammar.render, 'grammar'],
+  [/^grammar$/, grammarLessons.render, 'grammar'],
+  [/^grammar\/lesson\/([\w-]+)\/test$/, grammarLessons.renderTest, 'grammar', true],
+  [/^grammar\/lesson\/([\w-]+)$/, grammarLessons.renderLesson, 'grammar'],
+  [/^grammar\/reference$/, grammar.render, 'grammar'],
   [/^grammar\/practice$/, grammar.renderPractice, 'grammar', true],
   [/^grammar\/([\w-]+)$/, grammar.renderRule, 'grammar'],
   // Legacy: der alte Karteikarten-Modus

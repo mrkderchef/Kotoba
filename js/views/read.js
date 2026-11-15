@@ -5,6 +5,7 @@ import { STATUS_LABEL } from '../cards.js';
 import { speak, canSpeak } from '../speech.js';
 import { hasKanji } from '../romaji.js';
 import { wordPartsHtml } from '../word-parts.js';
+import { lessonsForStory } from '../grammar-lessons.js';
 import { sentencePool } from '../sentences.js';
 import {
   allStories, storyById, storyWords, parseStory, renderInline, jpKana, jpRomaji, wordInfo, wordCard, wordId, wordStatus,
@@ -291,10 +292,11 @@ export function renderStory(root, [id]) {
   const due = words.filter(w => wordCard(w) && wordCard(w).d <= t);
   const looked = new Set();
   const seen = new Set();
+  const lessons = lessonsForStory(id);
 
   const blocks = parseStory(s.text).map(b => {
     if (b.t === 'p') return `<p>${renderInline(b.src, { seen })}</p>`;
-    if (b.t === 'tip') return `<div class="tip grammar">💡 ${renderInline(b.src, { seen, noGloss: true })}</div>`;
+    if (b.t === 'tip') return `<div class="tip grammar">💡 ${renderInline(b.src, { seen, noGloss: true })}${lessons.length ? `<div class="story-lesson-links">${lessons.map(l => `<a href="#/grammar/lesson/${l.id}">Lektion: ${esc(l.title)} →</a>`).join('')}</div>` : ''}</div>`;
     return `<div class="jp-block">${b.lines.map(l => {
       const kana = jpKana(l.jp);
       return `<div class="jpl">

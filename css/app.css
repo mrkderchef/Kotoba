@@ -409,6 +409,38 @@ ul.rows li:first-child { border-top: 0; }
 .sentence-story-recap { text-align: left; display: grid; gap: 10px; }
 
 /* ---------- Grammatik & Lernprofil ---------- */
+.grammar-course-intro h2 { font-size: 1.6rem; line-height: 1.3; margin: 8px 0; }
+.grammar-course-intro .btn { margin-top: 14px; }
+.grammar-course-tools { display: grid; gap: 10px; }
+.grammar-course-tools > label { font-weight: 650; }
+.lesson-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.lesson-filters label { display: grid; gap: 4px; font-size: .85rem; color: var(--muted); min-width: 0; }
+.lesson-filters select { width: 100%; min-width: 0; padding: 10px 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font: inherit; font-size: 16px; }
+#lesson-list { display: grid; gap: 24px; }
+.lesson-unit > h2 { font-size: 1.15rem; margin: 0 4px 12px; }
+.lesson-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.lesson-card { padding: 0; overflow: hidden; }
+.lesson-main { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 12px; padding: 16px; align-items: start; color: var(--text); }
+.lesson-main h3 { margin: 0; font-size: 1.05rem; line-height: 1.4; }
+.lesson-main p { margin: 4px 0 8px; font-size: .9rem; line-height: 1.5; }
+.lesson-main small { color: var(--muted); font-size: .78rem; }
+.lesson-number { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--indigo-soft); color: var(--indigo); font-weight: 700; }
+.lesson-number.passed { color: var(--ok); background: var(--ok-soft); }
+.lesson-card-actions { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; padding: 0 16px 10px 66px; font-size: .85rem; }
+.lesson-card-actions a { display: inline-flex; align-items: center; min-height: 44px; }
+.lesson-goal { padding: 12px; border-left: 3px solid var(--accent); background: var(--accent-soft); line-height: 1.6; }
+.lesson-step { display: flex; gap: 12px; align-items: flex-start; margin-top: 14px; }
+.lesson-step > span { flex: none; display: grid; place-items: center; border-radius: 50%; width: 28px; height: 28px; color: var(--indigo); background: var(--indigo-soft); font-weight: 700; }
+.lesson-step p { margin: 0; line-height: 1.7; }
+.lesson-example .row-between { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.lesson-example .row-between .jp { font-size: 1.2rem; }
+.lesson-romaji { color: var(--indigo); margin: 8px 0; }
+.lesson-romaji strong { color: var(--accent); border-bottom: 2px solid currentColor; }
+.lesson-word-bank { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+.lesson-word-bank button:disabled { opacity: .35; }
+.story-lesson-links { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: .85rem; }
+.story-lesson-links a { padding: 6px 0; }
+@media (max-width: 380px) { .lesson-filters { grid-template-columns: 1fr; } .lesson-card-actions { padding-left: 16px; } }
 .grammar-formula { padding: 14px; border-radius: 14px; background: var(--indigo-soft); color: var(--indigo); font-weight: 700; font-size: 1.12rem; line-height: 1.6; overflow-wrap: anywhere; }
 .grammar-jumps { display: flex; flex-wrap: wrap; gap: 8px; }
 .grammar-jumps a { background: var(--surface-2); padding: 8px 12px; border: 1px solid var(--line); border-radius: 12px; font-weight: 600; }

@@ -13,6 +13,8 @@ import { allStories, parseStory, storyWords, wordSetChapters, wordSetWords } fro
 import { GRAMMAR_RULES, GRAMMAR_GROUPS } from '../data/grammar.js';
 import { grammarRule, grammarTopic, grammarKey, grammarMatches, formulaQuestions, storyGrammarQuestions } from '../js/grammar.js';
 import { state, merge } from '../js/store.js';
+import { GRAMMAR_LESSONS, LESSON_UNITS } from '../data/grammar-lessons.js';
+import { grammarLesson, lessonQuestions, lessonExample, matchesLessonAnswer, lessonKey, lessonProgress, finishLessonTest, filterLessons, lessonsForStory } from '../js/grammar-lessons.js';
 
 const root = new URL('../', import.meta.url);
 const pool = new Set(WORDS.map(w => w[0]));
@@ -186,6 +188,65 @@ assert.equal(storyGrammarQuestions('ni', [{ id: 'choice', ro: 'koohii ni shimasu
 const mergedGrammar = merge({ ...state, quiz: { [grammarKey('no')]: { mac: { r: 1, w: 2, t: 1 } } } }, { ...state, quiz: { [grammarKey('no')]: { phone: { r: 3, w: 1, t: 2 } } } });
 assert.deepEqual(Object.keys(mergedGrammar.quiz[grammarKey('no')]).sort(), ['mac', 'phone'], 'Grammatikprofil wird zwischen Geräten zusammengeführt');
 
+// Lessons cover the story grammar and work without any reading prerequisites.
+assert.equal(new Set(GRAMMAR_LESSONS.map(l => l.id)).size, GRAMMAR_LESSONS.length, 'Eindeutige Lektions-IDs');
+for (const lesson of GRAMMAR_LESSONS) {
+  assert(/^[\w-]+$/.test(lesson.id), `${lesson.id}: stabile Route`);
+  assert(LESSON_UNITS[lesson.unit], `${lesson.id}: Lernbereich`);
+  for (const field of ['title', 'goal', 'formula', 'caution']) assert(lesson[field]?.trim(), `${lesson.id}: ${field} fehlt`);
+  assert.equal(lesson.explain.length, 2, `${lesson.id}: Erklärung und Aufbau`);
+  assert(lesson.explain.every(s => s.trim()), `${lesson.id}: leere Erklärung`);
+  assert.equal(lesson.examples.length, 2, `${lesson.id}: zwei erklärte Beispiele`);
+  assert(!lesson.examples.some(ex => ex.marked === lesson.transfer.marked), `${lesson.id}: neuer Transfersatz`);
+  for (const ex of [...lesson.examples, lesson.transfer]) {
+    assert(ex.jp && ex.de && ex.marked, `${lesson.id}: vollständiges Beispiel`);
+    assert.equal([...ex.marked.matchAll(/\[/g)].length, 1, `${lesson.id}: genau ein Lernziel`);
+    assert(!/[\[\]一-龯㐀-䶿]/.test(lessonExample(ex).ro), `${lesson.id}: lesbare Romaji`);
+  }
+  assert.equal(lesson.check.choices.length, 3, `${lesson.id}: drei Verständnisantworten`);
+  assert.equal(new Set(lesson.check.choices).size, 3, `${lesson.id}: verschiedene Verständnisantworten`);
+  assert(lesson.check.choices.includes(lesson.check.answer), `${lesson.id}: korrekte Auswahl vorhanden`);
+  const tasks = lessonQuestions(lesson.id);
+  assert.deepEqual(tasks.map(q => q.kind), ['choice', 'gap', 'gap', 'build'], `${lesson.id}: eigener vollständiger Test`);
+  for (const q of tasks) {
+    assert(matchesLessonAnswer(q.kind === 'build' ? q.ro : q.answer, q, lesson), `${lesson.id}/${q.id}: Musterlösung akzeptieren`);
+    assert(!matchesLessonAnswer('', q, lesson), `${lesson.id}/${q.id}: leere Antwort ablehnen`);
+    assert(!matchesLessonAnswer('keine ahnung', q, lesson), `${lesson.id}/${q.id}: falsche Antwort ablehnen`);
+    if (q.kind !== 'choice') {
+      assert(matchesLessonAnswer((q.kind === 'build' ? q.ro : q.answer).toUpperCase().replaceAll(' ', ''), q, lesson), `${lesson.id}/${q.id}: Großschreibung und Abstände`);
+      assert(!matchesLessonAnswer((q.kind === 'build' ? q.ro : q.answer) + ' extra', q, lesson), `${lesson.id}/${q.id}: Zusatzwörter nicht ignorieren`);
+    } else for (const wrong of q.choices.filter(x => x !== q.answer)) assert(!matchesLessonAnswer(wrong, q, lesson), `${lesson.id}: falsche Auswahl`);
+  }
+  assert(lesson.stories.every(id => STORIES.some(s => s.id === id)), `${lesson.id}: gültige Geschichtenverweise`);
+}
+for (const s of allStories()) if (parseStory(s.text).some(b => b.t === 'tip')) assert(lessonsForStory(s.id).length, `${s.id}: Grammatik als Lektion zugänglich`);
+assert.deepEqual(lessonQuestions('unknown'), [], 'Unbekannte Lektion liefert keine Aufgaben');
+assert(filterLessons('Erlaubnis').some(l => l.id === 'permission'), 'Lektion nach Lernziel finden');
+assert(filterLessons('', 'te').every(l => l.unit === 'te'), 'Lernbereich filtern');
+const destination = grammarLesson('destination'), destinationTasks = lessonQuestions(destination.id);
+assert(matchesLessonAnswer('e', destinationTasks[1], destination), 'Bewegungsziel auch mit e');
+assert(matchesLessonAnswer(destinationTasks[3].ro.replace(' ni ', ' e '), destinationTasks[3], destination), 'Gültige alternative Zielmarkierung im Satz');
+const oldSections = structuredClone(state.sections);
+const lessonResults = lessonQuestions('desu').map(q => ({ id: q.id, correct: true, hinted: false }));
+try {
+  delete state.sections[lessonKey('desu')];
+  assert(!finishLessonTest('desu', lessonResults.slice(0, 1)).full, 'Einzelne Fehlerwiederholung ist kein vollständiger Test');
+  assert(!lessonProgress('desu').passed, 'Teiltest schaltet keine Lektion auf bestanden');
+  assert(!finishLessonTest('desu', lessonResults, { retry: true }).full, 'Auch eine Wiederholung aller Fehler ersetzt keinen neuen kompletten Test');
+  assert(!lessonProgress('desu').passed, 'Fehlerwiederholung erhält ihren eigenen Status');
+  assert(!finishLessonTest('desu', lessonResults.map(r => ({ ...r, hinted: true }))).passed, 'Lösungen mit Hilfe reichen nicht zum Bestehen');
+  assert(finishLessonTest('desu', lessonResults.map((r, i) => ({ ...r, correct: i !== 0 }))).passed, 'Drei von vier ohne Hilfe bestehen');
+  finishLessonTest('desu', lessonResults);
+  assert.equal(lessonProgress('desu').best, 100, 'Bestwert nach komplettem Test');
+  finishLessonTest('desu', lessonResults.map(r => ({ ...r, correct: false })));
+  assert.equal(lessonProgress('desu').best, 100, 'Bestwert bleibt bei späteren Fehlern erhalten');
+  assert(lessonProgress('desu').passed, 'Bestandene Lektion bleibt bestanden');
+  assert(filterLessons('', 'all', 'passed').some(l => l.id === 'desu'), 'Bestandene Lektionen filtern');
+  assert(!filterLessons('', 'all', 'open').some(l => l.id === 'desu'), 'Offene Lektionen filtern');
+} finally { state.sections = oldSections; }
+const lessonSync = merge({ sections: { [lessonKey('desu')]: { learned: true, best: 50, passed: false } } }, { sections: { [lessonKey('desu')]: { learned: false, best: 100, passed: true } } });
+assert.deepEqual(lessonSync.sections[lessonKey('desu')], { learned: true, best: 100, passed: true }, 'Lektionsfortschritt und Bestwerte synchronisieren');
+
 const worker = await readFile(new URL('sw.js', root), 'utf8');
 const context = { self: { addEventListener() {} } };
 vm.runInNewContext(`${worker}\nglobalThis.assets = CORE;`, context);
@@ -204,4 +265,4 @@ async function checkModule(url) {
   }
 }
 await checkModule(new URL('js/app.js', root));
-console.log(`OK: ${STORIES.length} Geschichten, ${WORDS.length} Wörter, Kapitelsets, ${sentences.length} Satzaufgaben, ${GRAMMAR_RULES.length} Grammatik-Regeln, ${grammarExercises.length} Grammatik-Lücken, Lernstand, Romaji, Sync und ${visited.size} Offline-Module geprüft.`);
+console.log(`OK: ${STORIES.length} Geschichten, ${WORDS.length} Wörter, Kapitelsets, ${sentences.length} Satzaufgaben, ${GRAMMAR_LESSONS.length} Grammatik-Lektionen mit ${GRAMMAR_LESSONS.flatMap(l => lessonQuestions(l.id)).length} Testaufgaben, ${GRAMMAR_RULES.length} Grammatik-Regeln, ${grammarExercises.length} Grammatik-Lücken, Lernstand, Romaji, Sync und ${visited.size} Offline-Module geprüft.`);

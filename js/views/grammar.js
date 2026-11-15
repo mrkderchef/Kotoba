@@ -19,7 +19,7 @@ export function render(root) {
   const weak = profile.filter(s => s.n && s.r / s.n < .8).sort((a, b) => b.w / b.n - a.w / a.n || b.t - a.t).slice(0, 3);
   const readLessons = [...new Map(sentenceCatalog().filter(s => state.read[s.story]).map(s => [s.story, s])).values()];
   root.innerHTML = `
-    ${header('Meine Grammatik')}
+    ${header('Formelblatt & Lernprofil', '#/grammar')}
     <main class="page grammar-page">
       <section class="card">
         <div class="card-title">🧭 Mein Lernprofil</div>
